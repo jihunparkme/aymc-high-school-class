@@ -1,0 +1,98 @@
+.student-card {
+  background-color: var(--white);
+  border: 1px solid var(--border-gray);
+  border-radius: 8px;
+  padding: calc(var(--grid-size) * 3);
+  transition: all 0.2s ease;
+}
+
+.student-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: var(--primary-blue);
+}
+
+.student-card.absent {
+  opacity: 0.7;
+  background-color: rgba(239, 68, 68, 0.05);
+}
+
+.student-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: calc(var(--grid-size) * 2);
+  padding-bottom: calc(var(--grid-size) * 2);
+  border-bottom: 1px solid var(--border-gray);
+}
+
+.student-header h3 {
+  font-size: 1.125rem;
+  color: var(--main-text);
+  margin: 0;
+}
+
+.attendance-btn {
+  padding: calc(var(--grid-size) * 1.5) calc(var(--grid-size) * 2);
+  background-color: var(--white);
+  border: 2px solid var(--border-gray);
+  border-radius: 6px;
+  color: var(--main-text);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.attendance-btn:hover {
+  border-color: var(--primary-blue);
+  background-color: #f0f7ff;
+}
+
+.attendance-btn.active {
+  background-color: var(--primary-blue);
+  color: var(--white);
+  border-color: var(--primary-blue);
+}
+
+.attendance-btn.present {
+  background-color: #10b981;
+  color: var(--white);
+  border-color: #10b981;
+}
+
+.attendance-btn.absent {
+  background-color: #ef4444;
+  color: var(--white);
+  border-color: #ef4444;
+}
+
+.student-actions {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--grid-size));
+}
+
+.action-btn {
+  background-color: var(--white);
+  border: 1px solid var(--border-gray);
+  color: var(--main-text);
+  padding: calc(var(--grid-size) * 2);
+  font-size: 0.875rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.action-btn:hover {
+  background-color: var(--light-gray);
+  border-color: var(--primary-blue);
+}
+
+.prayer-btn {
+  border-left: 4px solid var(--primary-blue);
+}
+
+.notes-btn {
+  border-left: 4px solid #f59e0b;
+}

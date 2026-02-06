@@ -1,0 +1,64 @@
+.prayer-view {
+  padding: calc(var(--grid-size));
+}
+
+.prayer-view h2 {
+  font-size: 1.25rem;
+  color: var(--main-text);
+  margin-bottom: calc(var(--grid-size) * 2);
+}
+
+.prayers-list {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--grid-size) * 2);
+}
+
+.prayer-item {
+  background-color: var(--light-gray);
+  border-left: 4px solid var(--primary-blue);
+  padding: calc(var(--grid-size) * 2) calc(var(--grid-size) * 3);
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.prayer-item:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.prayer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: calc(var(--grid-size));
+  flex-wrap: wrap;
+  gap: calc(var(--grid-size));
+}
+
+.grade-class {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--primary-blue);
+  background-color: rgba(0, 149, 246, 0.1);
+  padding: calc(var(--grid-size) / 2) calc(var(--grid-size));
+  border-radius: 4px;
+}
+
+.student-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--main-text);
+}
+
+.prayer-text {
+  font-size: 0.95rem;
+  color: var(--main-text);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.empty-message {
+  text-align: center;
+  color: var(--secondary-text);
+  padding: calc(var(--grid-size) * 4);
+}

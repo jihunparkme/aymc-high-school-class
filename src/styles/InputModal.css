@@ -1,0 +1,158 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: calc(var(--grid-size) * 2);
+}
+
+.modal-content {
+  background-color: var(--white);
+  border-radius: 12px;
+  box-shadow: 0 20px 25px rgba(0, 0, 0, 0.15);
+  max-width: 500px;
+  width: 100%;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: calc(var(--grid-size) * 3);
+  border-bottom: 1px solid var(--border-gray);
+}
+
+.modal-header h2 {
+  font-size: 1.25rem;
+  color: var(--main-text);
+  margin: 0;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--secondary-text);
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.close-btn:hover {
+  background-color: var(--light-gray);
+}
+
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: calc(var(--grid-size) * 3);
+}
+
+.student-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--primary-blue);
+  margin-bottom: calc(var(--grid-size) * 2);
+}
+
+.existing-items {
+  margin-bottom: calc(var(--grid-size) * 3);
+  background-color: var(--light-gray);
+  padding: calc(var(--grid-size) * 2);
+  border-radius: 6px;
+}
+
+.existing-items h4 {
+  font-size: 0.875rem;
+  color: var(--secondary-text);
+  margin-bottom: calc(var(--grid-size));
+  text-transform: uppercase;
+}
+
+.existing-items ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--grid-size));
+}
+
+.existing-items li {
+  font-size: 0.95rem;
+  color: var(--main-text);
+  padding: calc(var(--grid-size));
+  background-color: var(--white);
+  border-left: 3px solid var(--primary-blue);
+  border-radius: 4px;
+}
+
+textarea {
+  width: 100%;
+  min-height: 120px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  padding: calc(var(--grid-size) * 2);
+  border: 1px solid var(--border-gray);
+  border-radius: 6px;
+  resize: vertical;
+  transition: border-color 0.2s ease;
+}
+
+textarea:focus {
+  outline: none;
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 3px rgba(0, 149, 246, 0.1);
+}
+
+.modal-footer {
+  display: flex;
+  gap: calc(var(--grid-size) * 2);
+  padding: calc(var(--grid-size) * 3);
+  border-top: 1px solid var(--border-gray);
+}
+
+.btn-cancel {
+  flex: 1;
+  background-color: var(--border-gray);
+  color: var(--main-text);
+}
+
+.btn-cancel:hover {
+  background-color: #d4d4d8;
+}
+
+.btn-save {
+  flex: 1;
+  background-color: var(--primary-blue);
+  color: var(--white);
+}
+
+.btn-save:hover:not(:disabled) {
+  background-color: #0078d9;
+}

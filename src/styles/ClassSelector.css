@@ -1,0 +1,98 @@
+.class-selector {
+  max-width: 800px;
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-content {
+  text-align: center;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--grid-size) * 2);
+  flex: 1;
+}
+
+.home-button {
+  background-color: var(--border-gray);
+  color: var(--main-text);
+  padding: calc(var(--grid-size) * 1.25) calc(var(--grid-size) * 2);
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  flex-shrink: 0;
+}
+
+.home-button:hover {
+  background-color: #d4d4d8;
+}
+
+.classes-container {
+  padding: calc(var(--grid-size) * 3);
+}
+
+.classes-container h2 {
+  font-size: 1.25rem;
+  color: var(--main-text);
+  margin-bottom: calc(var(--grid-size) * 3);
+  text-align: center;
+}
+
+.classes-list {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--grid-size) * 2);
+}
+
+.class-button {
+  background-color: var(--white);
+  border: 1px solid var(--border-gray);
+  padding: calc(var(--grid-size) * 3);
+  border-radius: 8px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.class-button:hover {
+  border-color: var(--primary-blue);
+  box-shadow: 0 4px 12px rgba(0, 149, 246, 0.1);
+  transform: translateX(4px);
+}
+
+.class-info {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--grid-size));
+}
+
+.class-name {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--main-text);
+}
+
+.teacher-name {
+  font-size: 0.95rem;
+  color: var(--primary-blue);
+  font-weight: 500;
+}
+
+.student-count {
+  font-size: 0.875rem;
+  color: var(--secondary-text);
+}

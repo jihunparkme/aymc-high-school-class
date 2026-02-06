@@ -1,0 +1,23 @@
+.student-management {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--grid-size) * 3);
+}
+
+.class-info {
+  font-size: 0.95rem;
+  color: var(--secondary-text);
+  padding: calc(var(--grid-size) * 2);
+  background-color: var(--light-gray);
+  border-radius: 6px;
+  margin-bottom: calc(var(--grid-size) * 2);
+}
+
+.students-table {
+  overflow-x: auto;
+}
+
+.students-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
