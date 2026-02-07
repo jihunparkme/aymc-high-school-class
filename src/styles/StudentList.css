@@ -39,14 +39,15 @@
 
 .week-navigation {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   background-color: var(--white);
   padding: calc(var(--grid-size) * 2) calc(var(--grid-size) * 3);
   border-radius: 8px;
-  margin-bottom: calc(var(--grid-size) * 2);
-  gap: calc(var(--grid-size) * 2);
-  flex-wrap: wrap;
+  margin: 0 auto calc(var(--grid-size) * 2);
+  gap: calc(var(--grid-size) * 1.5);
+  flex-wrap: nowrap;
+  width: fit-content;
 }
 
 .home-button {
@@ -86,7 +87,6 @@
   display: flex;
   align-items: center;
   gap: calc(var(--grid-size) * 2);
-  flex: 1;
   justify-content: center;
 }
 
