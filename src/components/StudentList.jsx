@@ -116,17 +116,14 @@ export default function StudentList({
         </div>
       </header>
 
-      <div className="week-navigation">
-        <button className="week-btn" onClick={handlePrevWeek}>← 이전 주</button>
-        <div className="week-display">
-          <span className="week-range">{getWeekDisplay()}</span>
-          <button className="today-btn" onClick={handleToday}>오늘</button>
-        </div>
-        <button className="week-btn" onClick={handleNextWeek}>다음 주 →</button>
+      <div className="date-selector">
+        <p className="week-date-display">{getWeekDisplay()}</p>
       </div>
 
-      <div className="date-selector">
-        <p>이번 주: {weekDates[0]} ~ {weekDates[6]}</p>
+      <div className="week-navigation">
+        <button className="week-btn" onClick={handlePrevWeek}>← 이전 주</button>
+        <button className="today-btn" onClick={handleToday}>오늘</button>
+        <button className="week-btn" onClick={handleNextWeek}>다음 주 →</button>
       </div>
 
       <div className="filter-buttons">
