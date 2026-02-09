@@ -1,9 +1,14 @@
-import { useRef } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import '../styles/DataManagement.css'
-import { exportToJSON, importFromJSON, saveToLocalStorage } from '../utils/dataManager'
+import { exportToJSON, importFromJSON, saveToLocalStorage, getBackupsList, loadBackup } from '../utils/dataManager'
 
 export default function DataManagement({ data, dailyData, onDataUpdate, onDailyDataUpdate }) {
   const fileInputRef = useRef(null)
+  const [backups, setBackups] = useState([])
+
+  useEffect(() => {
+    setBackups(getBackupsList())
+  }, [])
 
   const handleExport = () => {
     exportToJSON(data, dailyData)
@@ -36,6 +41,20 @@ export default function DataManagement({ data, dailyData, onDataUpdate, onDailyD
     }
   }
 
+  const handleRestoreBackup = (key) => {
+    if (confirm('이 백업으로 복원하시겠습니까? 현재 데이터는 덮어씌워집니다.')) {
+      const backupData = loadBackup(key)
+      if (backupData) {
+        onDataUpdate(backupData.data)
+        onDailyDataUpdate(backupData.dailyData)
+        saveToLocalStorage(backupData.data, backupData.dailyData)
+        alert('백업이 복원되었습니다.')
+      } else {
+        alert('백업 데이터를 불러올 수 없습니다.')
+      }
+    }
+  }
+
   const backupInfo = (() => {
     const backupTime = new Date()
     return backupTime.toLocaleString('ko-KR')
@@ -48,7 +67,7 @@ export default function DataManagement({ data, dailyData, onDataUpdate, onDailyD
         <p>마지막 백업: {backupInfo}</p>
         <p className="info-text">
           • 모든 데이터는 1시간마다 자동으로 백업됩니다<br/>
-          • 자정(00:00)마다 데이터가 새로 초기화됩니다<br/>
+          • 자정(00:00)마다 데이터가 백업됩니다<br/>
           • 언제든지 데이터를 다운로드하거나 업로드할 수 있습니다
         </p>
       </div>
@@ -102,6 +121,27 @@ export default function DataManagement({ data, dailyData, onDataUpdate, onDailyD
             </strong>
           </div>
         </div>
+      </div>
+
+      <div className="backup-list-section">
+        <h4>백업 목록</h4>
+        {backups.length === 0 ? (
+          <p className="empty-message">저장된 백업이 없습니다.</p>
+        ) : (
+          <div className="backup-list">
+            {backups.map(key => (
+              <div key={key} className="backup-item">
+                <span className="backup-name">{key.replace('aymc_backup_', '')}</span>
+                <button 
+                  className="btn-restore"
+                  onClick={() => handleRestoreBackup(key)}
+                >
+                  복원
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )

@@ -32,26 +32,21 @@
 }
 
 .attendance-btn {
-  padding: calc(var(--grid-size) * 1.5) calc(var(--grid-size) * 2);
+  padding: calc(var(--grid-size)) calc(var(--grid-size) * 2);
   background-color: var(--white);
-  border: 2px solid var(--border-gray);
+  border: 1px solid var(--border-gray);
   border-radius: 6px;
   color: var(--main-text);
   cursor: pointer;
   font-size: 0.875rem;
   font-weight: 500;
   transition: all 0.2s ease;
+  min-width: 60px;
 }
 
 .attendance-btn:hover {
   border-color: var(--primary-blue);
   background-color: #f0f7ff;
-}
-
-.attendance-btn.active {
-  background-color: var(--primary-blue);
-  color: var(--white);
-  border-color: var(--primary-blue);
 }
 
 .attendance-btn.present {
@@ -82,6 +77,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   text-align: left;
+  position: relative;
 }
 
 .action-btn:hover {
@@ -90,9 +86,21 @@
 }
 
 .prayer-btn {
-  border-left: 4px solid var(--primary-blue);
+  border-left: 4px solid var(--border-gray);
+}
+
+.prayer-btn.active {
+  border-left-color: var(--primary-blue);
+  background-color: rgba(0, 149, 246, 0.05);
+  font-weight: 500;
 }
 
 .notes-btn {
-  border-left: 4px solid #f59e0b;
+  border-left: 4px solid var(--border-gray);
+}
+
+.notes-btn.active {
+  border-left-color: #f59e0b;
+  background-color: rgba(245, 158, 11, 0.05);
+  font-weight: 500;
 }

@@ -214,6 +214,37 @@ export const saveToLocalStorage = async (data, dailyData) => {
   }
 }
 
+// 일일 백업 생성
+export const createDailyBackup = (data, dailyData) => {
+  try {
+    const date = new Date().toISOString().split('T')[0]
+    const backupKey = `aymc_backup_${date}`
+    const backupData = { data, dailyData }
+    localStorage.setItem(backupKey, JSON.stringify(backupData))
+    console.log(`Daily backup created for ${date}`)
+  } catch (error) {
+    console.error('Failed to create daily backup:', error)
+  }
+}
+
+// 백업 목록 조회
+export const getBackupsList = () => {
+  const backups = []
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i)
+    if (key.startsWith('aymc_backup_')) {
+      backups.push(key)
+    }
+  }
+  return backups.sort().reverse()
+}
+
+// 백업 로드
+export const loadBackup = (key) => {
+  const backup = localStorage.getItem(key)
+  return backup ? JSON.parse(backup) : null
+}
+
 // API를 통해 데이터 로드
 export const loadFromLocalStorage = async () => {
   try {
@@ -411,5 +442,20 @@ export const removeStudent = (data, gradeId, classId, studentId) => {
   if (!classItem) return data
   
   classItem.students = classItem.students.filter(s => s.studentId !== studentId)
+  return newData
+}
+
+export const updateStudent = (data, gradeId, classId, studentId, newName) => {
+  const newData = JSON.parse(JSON.stringify(data))
+  const grade = newData.grades.find(g => g.gradeId === gradeId)
+  if (!grade) return data
+  
+  const classItem = grade.classes.find(c => c.classId === classId)
+  if (!classItem) return data
+  
+  const student = classItem.students.find(s => s.studentId === studentId)
+  if (!student) return data
+  
+  student.name = newName
   return newData
 }

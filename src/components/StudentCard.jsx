@@ -16,7 +16,7 @@ export default function StudentCard({
           onClick={onAttendanceClick}
           title={dayData?.attendance ? '출석' : '부재'}
         >
-          {dayData?.attendance ? '✓' : '✗'}
+          {dayData?.attendance ? '출석' : '결석'}
         </button>
       </div>
 

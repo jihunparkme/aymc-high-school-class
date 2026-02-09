@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import '../styles/StudentManagement.css'
-import { addStudent, removeStudent } from '../utils/dataManager'
+import { addStudent, removeStudent, updateStudent } from '../utils/dataManager'
 
 export default function StudentManagement({ data, onDataUpdate }) {
   const [selectedGrade, setSelectedGrade] = useState(data.grades[0].gradeId)
   const [selectedClass, setSelectedClass] = useState(data.grades[0].classes[0].classId)
   const [newStudentName, setNewStudentName] = useState('')
+  const [editingStudentId, setEditingStudentId] = useState(null)
 
   const grade = data.grades.find(g => g.gradeId === selectedGrade)
   const classItem = grade.classes.find(c => c.classId === selectedClass)
@@ -36,6 +37,17 @@ export default function StudentManagement({ data, onDataUpdate }) {
       const newData = removeStudent(data, selectedGrade, selectedClass, studentId)
       onDataUpdate(newData)
     }
+  }
+
+  const handleUpdateStudent = (studentId, newName) => {
+    if (!newName.trim()) {
+      alert('학생 이름을 입력하세요.')
+      return
+    }
+
+    const newData = updateStudent(data, selectedGrade, selectedClass, studentId, newName)
+    onDataUpdate(newData)
+    setEditingStudentId(null)
   }
 
   return (
@@ -109,10 +121,41 @@ export default function StudentManagement({ data, onDataUpdate }) {
                 {students.map((student, idx) => (
                   <tr key={student.studentId}>
                     <td>{idx + 1}</td>
-                    <td>{student.name}</td>
+                    <td>
+                      {editingStudentId === student.studentId ? (
+                        <input
+                          type="text"
+                          defaultValue={student.name}
+                          onBlur={(e) => handleUpdateStudent(student.studentId, e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              handleUpdateStudent(student.studentId, e.currentTarget.value)
+                            }
+                          }}
+                          autoFocus
+                        />
+                      ) : (
+                        student.name
+                      )}
+                    </td>
                     <td>{student.prayerRequests?.length || 0}개</td>
                     <td>{student.notes ? '✓' : '-'}</td>
                     <td className="actions">
+                      {editingStudentId === student.studentId ? (
+                        <button 
+                          onClick={() => setEditingStudentId(null)}
+                          className="btn-save"
+                        >
+                          취소
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={() => setEditingStudentId(student.studentId)}
+                          className="btn-edit"
+                        >
+                          수정
+                        </button>
+                      )}
                       <button 
                         onClick={() => handleDeleteStudent(student.studentId)}
                         className="btn-delete"

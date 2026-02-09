@@ -4,7 +4,7 @@ import GradeSelector from './components/GradeSelector'
 import ClassSelector from './components/ClassSelector'
 import StudentList from './components/StudentList'
 import AdminPanel from './components/AdminPanel'
-import { initializeData, initializeDailyData, saveToLocalStorage, loadFromLocalStorage } from './utils/dataManager'
+import { initializeData, initializeDailyData, saveToLocalStorage, loadFromLocalStorage, createDailyBackup } from './utils/dataManager'
 
 function App() {
   const [appState, setAppState] = useState('gradeSelect')
@@ -50,8 +50,10 @@ function App() {
     return () => clearInterval(backupInterval)
   }, [data, dailyData, isLoading])
 
-  // 자정마다 데이터 초기화 (새로운 날)
+  // 자정마다 백업 (데이터 초기화는 하지 않음 - 과거 데이터 보존)
   useEffect(() => {
+    if (!data || isLoading) return
+
     const checkMidnight = () => {
       const now = new Date()
       const nextMidnight = new Date(now)
@@ -59,10 +61,9 @@ function App() {
       const timeUntilMidnight = nextMidnight - now
 
       const midnightTimer = setTimeout(() => {
-        const newData = initializeData()
-        setData(newData)
-        setDailyData({})
-        saveToLocalStorage(newData, {})
+        // 자정이 되면 현재 상태를 백업
+        createDailyBackup(data, dailyData)
+        // 다음 자정 체크
         checkMidnight()
       }, timeUntilMidnight)
 
@@ -70,7 +71,7 @@ function App() {
     }
 
     return checkMidnight()
-  }, [])
+  }, [data, dailyData, isLoading])
 
 
   if (isLoading || !data) return <div className="loading">로딩중...</div>
