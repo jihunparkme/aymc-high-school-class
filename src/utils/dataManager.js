@@ -377,6 +377,26 @@ export const updateAttendance = (dailyData, studentId, date, attendance) => {
   return updateStudentDailyData(dailyData, studentId, date, { attendance })
 }
 
+// 주간 시작 날짜 계산 (일요일)
+export const getWeekStart = (date) => {
+  const d = new Date(date)
+  const day = d.getDay()
+  const diff = d.getDate() - day
+  return new Date(d.setDate(diff))
+}
+
+// 특정 날짜의 주간 날짜들 배열 반환
+export const getWeekDates = (date) => {
+  const weekStart = getWeekStart(date)
+  const dates = []
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(weekStart)
+    d.setDate(d.getDate() + i)
+    dates.push(d.toISOString().split('T')[0])
+  }
+  return dates
+}
+
 // 다음 주 시작 날짜
 export const getNextWeek = (date) => {
   const d = new Date(date)

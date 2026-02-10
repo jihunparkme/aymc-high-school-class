@@ -104,8 +104,15 @@ export default function StudentList({
           <button className="home-button" onClick={onHome}>🏠 홈</button>
         </div>
         <div className="header-content">
-          <h1>{selectedClass.className}</h1>
-          <p className="teacher-info">{selectedClass.teacherName}</p>
+          <div className="breadcrumb">
+            <button onClick={onHome}>홈</button>
+            <span>&gt;</span>
+            <button onClick={onBack}>{selectedGrade.gradeName}</button>
+          </div>
+          <div className="class-title-section">
+            <h1>{selectedClass.className}</h1>
+            <p className="teacher-info">{selectedClass.teacherName}</p>
+          </div>
         </div>
       </header>
 
