@@ -1,0 +1,92 @@
+.attendance-management {
+    padding: calc(var(--grid-size));
+}
+
+.attendance-management .header-section {
+    margin-bottom: calc(var(--grid-size) * 2);
+}
+
+.attendance-management h2 {
+    font-size: 1.25rem;
+    color: var(--main-text);
+    margin-bottom: calc(var(--grid-size));
+}
+
+.attendance-management .week-info {
+    font-size: 0.95rem;
+    color: var(--secondary-text);
+    padding: calc(var(--grid-size));
+    background-color: var(--light-gray);
+    border-radius: 4px;
+    text-align: center;
+}
+
+.attendance-management .date-navigation {
+    display: flex;
+    gap: calc(var(--grid-size) * 1.5);
+    justify-content: center;
+    margin-bottom: calc(var(--grid-size) * 3);
+}
+
+.grade-selector-attendance {
+    margin-bottom: calc(var(--grid-size) * 3);
+    display: flex;
+    align-items: center;
+    gap: calc(var(--grid-size));
+}
+
+.grade-selector-attendance label {
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.grade-selector-attendance select {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border-gray);
+    min-width: 150px;
+}
+
+.grade-section {
+    margin-bottom: calc(var(--grid-size) * 4);
+}
+
+.grade-section h3 {
+    font-size: 1.1rem;
+    color: var(--primary-blue);
+    border-bottom: 2px solid var(--primary-blue);
+    padding-bottom: calc(var(--grid-size));
+    margin-bottom: calc(var(--grid-size) * 2);
+}
+
+.class-section {
+    margin-bottom: calc(var(--grid-size) * 3);
+}
+
+.class-section h4 {
+    font-size: 1rem;
+    color: var(--main-text);
+    margin-bottom: calc(var(--grid-size) * 1.5);
+}
+
+.student-attendance-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--grid-size));
+}
+
+.student-tag {
+    padding: 6px 12px;
+    border-radius: 15px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--white);
+}
+
+.student-tag.present {
+    background-color: #10b981;
+}
+
+.student-tag.absent {
+    background-color: #ef4444;
+}

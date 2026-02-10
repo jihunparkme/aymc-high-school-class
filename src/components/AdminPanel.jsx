@@ -1,14 +1,15 @@
 import { useState } from 'react'
 import '../styles/AdminPanel.css'
 import PrayerView from './PrayerView'
-import NotesView from './NotesView' // NotesView import
+import NotesView from './NotesView'
+import AttendanceManagement from './AttendanceManagement' // AttendanceManagement import
 import ClassManagement from './ClassManagement'
 import StudentManagement from './StudentManagement'
 import DataManagement from './DataManagement'
 import { saveToLocalStorage } from '../utils/dataManager'
 
 export default function AdminPanel({ data, setData, dailyData, setDailyData, onBack, onHome }) {
-  const [activeTab, setActiveTab] = useState('prayer')
+  const [activeTab, setActiveTab] = useState('attendance') // 기본 탭을 출결로 설정
 
   const handleDataUpdate = (newData) => {
     setData(newData)
@@ -33,6 +34,12 @@ export default function AdminPanel({ data, setData, dailyData, setDailyData, onB
       </header>
 
       <div className="admin-tabs">
+        <button
+          className={`tab-btn ${activeTab === 'attendance' ? 'active' : ''}`}
+          onClick={() => setActiveTab('attendance')}
+        >
+          📊 출결 관리
+        </button>
         <button
           className={`tab-btn ${activeTab === 'prayer' ? 'active' : ''}`}
           onClick={() => setActiveTab('prayer')}
@@ -66,6 +73,7 @@ export default function AdminPanel({ data, setData, dailyData, setDailyData, onB
       </div>
 
       <div className="admin-content">
+        {activeTab === 'attendance' && <AttendanceManagement data={data} dailyData={dailyData} />}
         {activeTab === 'prayer' && <PrayerView data={data} dailyData={dailyData} />}
         {activeTab === 'notes' && <NotesView data={data} dailyData={dailyData} />}
         {activeTab === 'class' && (
