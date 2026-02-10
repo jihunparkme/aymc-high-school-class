@@ -1,23 +1,12 @@
 import { useState } from 'react'
-import { getWeekStart, getWeekDates, getNextWeek, getPreviousWeek, getTodayWeek } from '../utils/dataManager'
+import { getNextWeek, getPreviousWeek, getTodayWeek, getWeekId } from '../utils/dataManager'
 import '../styles/PrayerView.css'
 
 export default function PrayerView({ data, dailyData }) {
   const [currentWeekDate, setCurrentWeekDate] = useState(new Date())
   const [searchTerm, setSearchTerm] = useState('')
   
-  const weekStartDate = getWeekStart(currentWeekDate)
-  const weekDates = getWeekDates(weekStartDate)
-  
-  const formatDateFriendly = (dateStr) => {
-    const date = new Date(dateStr)
-    const month = date.getMonth() + 1
-    const day = date.getDate()
-    const dayName = ['일', '월', '화', '수', '목', '금', '토'][date.getDay()]
-    return `${month}월 ${day}일 (${dayName})`
-  }
-
-  const weekDisplay = `${formatDateFriendly(weekDates[0])} ~ ${formatDateFriendly(weekDates[6])}`
+  const weekId = getWeekId(currentWeekDate)
 
   const handlePrevWeek = () => {
     setCurrentWeekDate(getPreviousWeek(currentWeekDate))
@@ -36,30 +25,26 @@ export default function PrayerView({ data, dailyData }) {
   data.grades.forEach(grade => {
     grade.classes.forEach(classItem => {
       classItem.students.forEach(student => {
-        // 현재 주의 모든 날짜에 대해 기도제목 수집
-        weekDates.forEach(dateStr => {
-          if (dailyData[student.studentId] && dailyData[student.studentId][dateStr]) {
-            const dayData = dailyData[student.studentId][dateStr]
-            if (dayData.prayerRequests && dayData.prayerRequests.length > 0) {
-              dayData.prayerRequests.forEach(prayer => {
-                allPrayers.push({
-                  gradeName: grade.gradeName,
-                  className: classItem.className,
-                  studentName: student.name,
-                  prayer: prayer,
-                  date: dateStr
-                })
+        if (dailyData[student.studentId] && dailyData[student.studentId][weekId]) {
+          const weekData = dailyData[student.studentId][weekId]
+          if (weekData.prayerRequests && weekData.prayerRequests.length > 0) {
+            weekData.prayerRequests.forEach(prayer => {
+              allPrayers.push({
+                gradeName: grade.gradeName,
+                className: classItem.className,
+                studentName: student.name,
+                prayer: prayer,
+                date: weekId
               })
-            }
+            })
           }
-        })
+        }
       })
     })
   })
 
-  // 날짜순, 학년순, 반순, 이름순 정렬
+  // 학년순, 반순, 이름순 정렬
   allPrayers.sort((a, b) => {
-    if (a.date !== b.date) return a.date.localeCompare(b.date)
     if (a.gradeName !== b.gradeName) return a.gradeName.localeCompare(b.gradeName)
     if (a.className !== b.className) return a.className.localeCompare(b.className)
     return a.studentName.localeCompare(b.studentName)
@@ -76,7 +61,7 @@ export default function PrayerView({ data, dailyData }) {
     <div className="prayer-view">
       <div className="prayer-header-section">
         <h2>주간 기도제목</h2>
-        <div className="week-info">{weekDisplay}</div>
+        <div className="week-info">{weekId}</div>
       </div>
 
       <div className="date-navigation">
@@ -106,7 +91,6 @@ export default function PrayerView({ data, dailyData }) {
           {filteredPrayers.map((item, idx) => (
             <div key={idx} className="prayer-item">
               <div className="prayer-header-info">
-                <span className="prayer-date">{formatDateFriendly(item.date)}</span>
                 <span className="grade-class">{item.gradeName} {item.className}</span>
                 <span className="student-name">{item.studentName}</span>
               </div>

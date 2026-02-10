@@ -2,7 +2,7 @@ import { useState } from 'react'
 import '../styles/StudentList.css'
 import StudentCard from './StudentCard'
 import InputModal from './InputModal'
-import { getWeekDates, getNextWeek, getPreviousWeek, getTodayWeek, saveToLocalStorage } from '../utils/dataManager'
+import { getNextWeek, getPreviousWeek, getTodayWeek, saveToLocalStorage, getWeekId } from '../utils/dataManager'
 
 export default function StudentList({ 
   data, 
@@ -14,24 +14,20 @@ export default function StudentList({
   onBack,
   onHome
 }) {
-  const [selectedDate, setSelectedDate] = useState(new Date())
+  const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedStudent, setSelectedStudent] = useState(null)
   const [modalType, setModalType] = useState(null)
   const [filterType, setFilterType] = useState('all')
   const [attendanceConfirm, setAttendanceConfirm] = useState(null)
 
   const students = selectedClass.students
-  const weekDates = getWeekDates(selectedDate)
-  
-  // Helper to format date consistently
-  const formatDate = (date) => date.toISOString().split('T')[0]
-  const selectedDateStr = formatDate(selectedDate)
+  const weekId = getWeekId(currentDate)
 
   const filteredStudents = students.filter(s => {
     if (filterType === 'all') return true
-    const dayData = dailyData[s.studentId]?.[selectedDateStr]
-    if (filterType === 'attendance') return dayData?.attendance === true
-    if (filterType === 'absent') return dayData?.attendance !== true
+    const weekData = dailyData[s.studentId]?.[weekId]
+    if (filterType === 'attendance') return weekData?.attendance === true
+    if (filterType === 'absent') return weekData?.attendance !== true
     return true
   })
 
@@ -52,8 +48,8 @@ export default function StudentList({
     if (!newDailyData[selectedStudent.studentId]) {
       newDailyData[selectedStudent.studentId] = {}
     }
-    if (!newDailyData[selectedStudent.studentId][selectedDateStr]) {
-      newDailyData[selectedStudent.studentId][selectedDateStr] = {
+    if (!newDailyData[selectedStudent.studentId][weekId]) {
+      newDailyData[selectedStudent.studentId][weekId] = {
         prayerRequests: [],
         notes: '',
         attendance: false
@@ -61,9 +57,9 @@ export default function StudentList({
     }
 
     if (modalType === 'prayer') {
-      newDailyData[selectedStudent.studentId][selectedDateStr].prayerRequests.push(content)
+      newDailyData[selectedStudent.studentId][weekId].prayerRequests.push(content)
     } else if (modalType === 'notes') {
-      newDailyData[selectedStudent.studentId][selectedDateStr].notes = content
+      newDailyData[selectedStudent.studentId][weekId].notes = content
     }
 
     setDailyData(newDailyData)
@@ -72,7 +68,7 @@ export default function StudentList({
   }
 
   const initiateAttendanceToggle = (student) => {
-    const currentStatus = dailyData[student.studentId]?.[selectedDateStr]?.attendance || false
+    const currentStatus = dailyData[student.studentId]?.[weekId]?.attendance || false
     setAttendanceConfirm({
       student,
       currentStatus
@@ -88,37 +84,31 @@ export default function StudentList({
     if (!newDailyData[student.studentId]) {
       newDailyData[student.studentId] = {}
     }
-    if (!newDailyData[student.studentId][selectedDateStr]) {
-      newDailyData[student.studentId][selectedDateStr] = {
+    if (!newDailyData[student.studentId][weekId]) {
+      newDailyData[student.studentId][weekId] = {
         prayerRequests: [],
         notes: '',
         attendance: false
       }
     }
 
-    newDailyData[student.studentId][selectedDateStr].attendance = !newDailyData[student.studentId][selectedDateStr].attendance
+    newDailyData[student.studentId][weekId].attendance = !newDailyData[student.studentId][weekId].attendance
     
     setDailyData(newDailyData)
     saveToLocalStorage(data, newDailyData)
     setAttendanceConfirm(null)
   }
 
-  const getWeekDisplay = () => {
-    const start = weekDates[0]
-    const end = weekDates[6]
-    return `${start} ~ ${end}`
-  }
-
   const handlePrevWeek = () => {
-    setSelectedDate(getPreviousWeek(selectedDate))
+    setCurrentDate(getPreviousWeek(currentDate))
   }
 
   const handleNextWeek = () => {
-    setSelectedDate(getNextWeek(selectedDate))
+    setCurrentDate(getNextWeek(currentDate))
   }
 
-  const handleToday = () => {
-    setSelectedDate(getTodayWeek())
+  const handleThisWeek = () => {
+    setCurrentDate(getTodayWeek())
   }
 
   return (
@@ -137,33 +127,12 @@ export default function StudentList({
       <div className="date-selector-container">
         <div className="week-navigation">
           <button className="week-btn" onClick={handlePrevWeek}>← 이전 주</button>
-          <span className="week-range">{getWeekDisplay()}</span>
+          <span className="week-range">{weekId}</span>
           <button className="week-btn" onClick={handleNextWeek}>다음 주 →</button>
         </div>
         
-        <div className="day-selector">
-          {weekDates.map(dateStr => {
-            const date = new Date(dateStr)
-            const dayName = ['일', '월', '화', '수', '목', '금', '토'][date.getDay()]
-            const dayNum = date.getDate()
-            const isSelected = dateStr === selectedDateStr
-            const isToday = dateStr === formatDate(new Date())
-            
-            return (
-              <button 
-                key={dateStr} 
-                className={`day-btn ${isSelected ? 'active' : ''} ${isToday ? 'today' : ''}`}
-                onClick={() => setSelectedDate(new Date(dateStr))}
-              >
-                <span className="day-name">{dayName}</span>
-                <span className="day-num">{dayNum}</span>
-              </button>
-            )
-          })}
-        </div>
-        
         <div className="today-action">
-           <button className="today-btn" onClick={handleToday}>오늘 날짜로 이동</button>
+           <button className="today-btn" onClick={handleThisWeek}>이번 주차로 이동</button>
         </div>
       </div>
 
@@ -179,8 +148,8 @@ export default function StudentList({
           onClick={() => setFilterType('attendance')}
         >
           출석 ({students.filter(s => {
-            const dayData = dailyData[s.studentId]?.[selectedDateStr]
-            return dayData?.attendance
+            const weekData = dailyData[s.studentId]?.[weekId]
+            return weekData?.attendance
           }).length}명)
         </button>
         <button
@@ -188,15 +157,15 @@ export default function StudentList({
           onClick={() => setFilterType('absent')}
         >
           부재 ({students.filter(s => {
-            const dayData = dailyData[s.studentId]?.[selectedDateStr]
-            return !dayData?.attendance
+            const weekData = dailyData[s.studentId]?.[weekId]
+            return !weekData?.attendance
           }).length}명)
         </button>
       </div>
 
       <div className="students-container">
         {filteredStudents.map(student => {
-          const dayData = dailyData[student.studentId]?.[selectedDateStr] || {
+          const dayData = dailyData[student.studentId]?.[weekId] || {
             prayerRequests: [],
             notes: '',
             attendance: false
@@ -219,8 +188,8 @@ export default function StudentList({
           student={selectedStudent}
           modalType={modalType}
           currentContent={selectedStudent && modalType === 'prayer' 
-            ? (dailyData[selectedStudent.studentId]?.[selectedDateStr]?.prayerRequests || [])
-            : (dailyData[selectedStudent.studentId]?.[selectedDateStr]?.notes || '')}
+            ? (dailyData[selectedStudent.studentId]?.[weekId]?.prayerRequests || [])
+            : (dailyData[selectedStudent.studentId]?.[weekId]?.notes || '')}
           onClose={handleCloseModal}
           onSave={handleSave}
         />

@@ -116,15 +116,6 @@
     gap: calc(var(--grid-size));
 }
 
-.prayer-date {
-    font-size: 0.8rem;
-    color: var(--secondary-text);
-    background-color: var(--white);
-    padding: 2px 6px;
-    border-radius: 4px;
-    border: 1px solid var(--border-gray);
-}
-
 .grade-class {
     font-size: 0.875rem;
     font-weight: 600;

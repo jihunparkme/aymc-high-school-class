@@ -2,6 +2,32 @@ const STORAGE_KEY = 'aymc_student_data'
 const DAILY_STORAGE_KEY = 'aymc_student_daily_data'
 const BACKUP_KEY = 'aymc_student_backup'
 
+// --- New Date Functions ---
+
+// Get the week number of a month
+export const getWeekOfMonth = (date) => {
+  const firstDay = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+  return Math.ceil((date.getDate() + firstDay) / 7);
+}
+
+// Format date to "YYYY년 MM월 W주차"
+export const getWeekId = (date) => {
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+  const week = getWeekOfMonth(date);
+  return `${year}년 ${String(month).padStart(2, '0')}월 ${week}주차`;
+}
+
+// Get the start date of a week (Sunday) from a weekId
+export const getWeekStartDateFromId = (weekId) => {
+  const [year, month, week] = weekId.replace('년', '').replace('월', '').replace('주차', '').split(' ').map(Number);
+  const firstDayOfMonth = new Date(year, month - 1, 1);
+  const firstDayOfWeek = firstDayOfMonth.getDay(); // 0 for Sunday, 1 for Monday...
+  const dayOffset = (week - 1) * 7 - firstDayOfWeek;
+  return new Date(year, month - 1, 1 + dayOffset);
+};
+
+
 export const initializeData = () => {
   const today = new Date().toISOString().split('T')[0]
   
@@ -349,26 +375,6 @@ export const updateNotes = (dailyData, studentId, date, notes) => {
 
 export const updateAttendance = (dailyData, studentId, date, attendance) => {
   return updateStudentDailyData(dailyData, studentId, date, { attendance })
-}
-
-// 주간 시작 날짜 계산 (일요일)
-export const getWeekStart = (date) => {
-  const d = new Date(date)
-  const day = d.getDay()
-  const diff = d.getDate() - day
-  return new Date(d.setDate(diff))
-}
-
-// 특정 날짜의 주간 날짜들 배열 반환
-export const getWeekDates = (date) => {
-  const weekStart = getWeekStart(date)
-  const dates = []
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(weekStart)
-    d.setDate(d.getDate() + i)
-    dates.push(d.toISOString().split('T')[0])
-  }
-  return dates
 }
 
 // 다음 주 시작 날짜
