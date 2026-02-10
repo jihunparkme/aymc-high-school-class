@@ -18,7 +18,6 @@ export default function StudentList({
   const [selectedStudent, setSelectedStudent] = useState(null)
   const [modalType, setModalType] = useState(null)
   const [filterType, setFilterType] = useState('all')
-  const [attendanceConfirm, setAttendanceConfirm] = useState(null)
 
   const students = selectedClass.students
   const weekId = getWeekId(currentDate)
@@ -67,36 +66,22 @@ export default function StudentList({
     handleCloseModal()
   }
 
-  const initiateAttendanceToggle = (student) => {
-    const currentStatus = dailyData[student.studentId]?.[weekId]?.attendance || false
-    setAttendanceConfirm({
-      student,
-      currentStatus
-    })
-  }
-
-  const confirmAttendanceToggle = () => {
-    if (!attendanceConfirm) return
-
-    const { student } = attendanceConfirm
+  const handleToggleAttendance = (studentId) => {
     const newDailyData = JSON.parse(JSON.stringify(dailyData))
-    
-    if (!newDailyData[student.studentId]) {
-      newDailyData[student.studentId] = {}
+    if (!newDailyData[studentId]) {
+      newDailyData[studentId] = {}
     }
-    if (!newDailyData[student.studentId][weekId]) {
-      newDailyData[student.studentId][weekId] = {
+    if (!newDailyData[studentId][weekId]) {
+      newDailyData[studentId][weekId] = {
         prayerRequests: [],
         notes: '',
         attendance: false
       }
     }
 
-    newDailyData[student.studentId][weekId].attendance = !newDailyData[student.studentId][weekId].attendance
-    
+    newDailyData[studentId][weekId].attendance = !newDailyData[studentId][weekId].attendance
     setDailyData(newDailyData)
     saveToLocalStorage(data, newDailyData)
-    setAttendanceConfirm(null)
   }
 
   const handlePrevWeek = () => {
@@ -177,7 +162,7 @@ export default function StudentList({
               dayData={dayData}
               onPrayerClick={() => handleOpenModal(student, 'prayer')}
               onNotesClick={() => handleOpenModal(student, 'notes')}
-              onAttendanceClick={() => initiateAttendanceToggle(student)}
+              onAttendanceClick={() => handleToggleAttendance(student.studentId)}
             />
           )
         })}
@@ -193,22 +178,6 @@ export default function StudentList({
           onClose={handleCloseModal}
           onSave={handleSave}
         />
-      )}
-
-      {attendanceConfirm && (
-        <div className="modal-overlay" onClick={() => setAttendanceConfirm(null)}>
-          <div className="modal-content confirm-modal" onClick={e => e.stopPropagation()}>
-            <h3>출석 상태 변경</h3>
-            <p>
-              <strong>{attendanceConfirm.student.name}</strong> 학생의 출석 상태를<br/>
-              <strong>{attendanceConfirm.currentStatus ? '결석' : '출석'}</strong>(으)로 변경하시겠습니까?
-            </p>
-            <div className="modal-footer">
-              <button className="btn-cancel" onClick={() => setAttendanceConfirm(null)}>취소</button>
-              <button className="btn-save" onClick={confirmAttendanceToggle}>확인</button>
-            </div>
-          </div>
-        </div>
       )}
     </div>
   )

@@ -130,21 +130,6 @@
   padding-bottom: calc(var(--grid-size) * 4);
 }
 
-.confirm-modal {
-  max-width: 400px;
-  text-align: center;
-}
-
-.confirm-modal h3 {
-  margin-top: 0;
-  color: var(--primary-blue);
-}
-
-.confirm-modal p {
-  margin: 20px 0;
-  line-height: 1.5;
-}
-
 @media (max-width: 768px) {
   .students-container {
     grid-template-columns: 1fr;
