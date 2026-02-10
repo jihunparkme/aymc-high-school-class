@@ -96,7 +96,7 @@ export default function PrayerView({ data, dailyData }) {
                   <span className="grade-class">{item.gradeName} {item.className}</span>
                   <span className="student-name">{item.studentName}</span>
                 </div>
-                <span className={`attendance-check ${item.attendance ? 'present' : 'absent'}`}>V</span>
+                <span className="attendance-emoji">{item.attendance ? '✅' : '❌'}</span>
               </div>
               <p className="prayer-text">{item.prayer}</p>
             </div>
