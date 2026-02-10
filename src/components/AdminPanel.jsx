@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import '../styles/AdminPanel.css'
 import PrayerView from './PrayerView'
+import NotesView from './NotesView' // NotesView import
 import ClassManagement from './ClassManagement'
 import StudentManagement from './StudentManagement'
 import DataManagement from './DataManagement'
@@ -36,7 +37,13 @@ export default function AdminPanel({ data, setData, dailyData, setDailyData, onB
           className={`tab-btn ${activeTab === 'prayer' ? 'active' : ''}`}
           onClick={() => setActiveTab('prayer')}
         >
-          📖 기도제목 조회
+          📖 기도제목
+        </button>
+        <button
+          className={`tab-btn ${activeTab === 'notes' ? 'active' : ''}`}
+          onClick={() => setActiveTab('notes')}
+        >
+          📝 특이사항
         </button>
         <button
           className={`tab-btn ${activeTab === 'class' ? 'active' : ''}`}
@@ -60,6 +67,7 @@ export default function AdminPanel({ data, setData, dailyData, setDailyData, onB
 
       <div className="admin-content">
         {activeTab === 'prayer' && <PrayerView data={data} dailyData={dailyData} />}
+        {activeTab === 'notes' && <NotesView data={data} dailyData={dailyData} />}
         {activeTab === 'class' && (
           <ClassManagement data={data} onDataUpdate={handleDataUpdate} />
         )}

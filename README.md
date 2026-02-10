@@ -75,7 +75,7 @@ src/
 │   ├── DataManagement.jsx      # 데이터 관리 (내보내기/가져오기)
 │   ├── GradeSelector.jsx       # 학년 선택
 │   ├── InputModal.jsx          # 입력 모달
-│   ├── PrayerView.jsx          # 기도제목 조회
+│   ├── PrayerView.jsx          # 기도제
 │   ├── StudentCard.jsx         # 학생 카드
 │   ├── StudentList.jsx         # 학생 목록
 │   └── StudentManagement.jsx   # 학생 관리

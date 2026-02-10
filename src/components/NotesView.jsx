@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { getNextWeek, getPreviousWeek, getTodayWeek, getWeekId } from '../utils/dataManager'
-import '../styles/PrayerView.css'
+import '../styles/PrayerView.css' // PrayerView와 동일한 스타일을 사용
 
-export default function PrayerView({ data, dailyData }) {
+export default function NotesView({ data, dailyData }) {
   const [currentWeekDate, setCurrentWeekDate] = useState(new Date())
   const [searchTerm, setSearchTerm] = useState('')
   
@@ -20,23 +20,21 @@ export default function PrayerView({ data, dailyData }) {
     setCurrentWeekDate(getTodayWeek())
   }
 
-  const allPrayers = []
+  const allNotes = []
 
   data.grades.forEach(grade => {
     grade.classes.forEach(classItem => {
       classItem.students.forEach(student => {
         if (dailyData[student.studentId] && dailyData[student.studentId][weekId]) {
           const weekData = dailyData[student.studentId][weekId]
-          if (weekData.prayerRequests && weekData.prayerRequests.length > 0) {
-            weekData.prayerRequests.forEach(prayer => {
-              allPrayers.push({
-                gradeName: grade.gradeName,
-                className: classItem.className,
-                studentName: student.name,
-                prayer: prayer,
-                date: weekId,
-                attendance: weekData.attendance || false
-              })
+          if (weekData.notes && weekData.notes.length > 0) {
+            allNotes.push({
+              gradeName: grade.gradeName,
+              className: classItem.className,
+              studentName: student.name,
+              note: weekData.notes,
+              date: weekId,
+              attendance: weekData.attendance || false
             })
           }
         }
@@ -45,23 +43,23 @@ export default function PrayerView({ data, dailyData }) {
   })
 
   // 학년순, 반순, 이름순 정렬
-  allPrayers.sort((a, b) => {
+  allNotes.sort((a, b) => {
     if (a.gradeName !== b.gradeName) return a.gradeName.localeCompare(b.gradeName)
     if (a.className !== b.className) return a.className.localeCompare(b.className)
     return a.studentName.localeCompare(b.studentName)
   })
 
-  const filteredPrayers = allPrayers.filter(item => 
+  const filteredNotes = allNotes.filter(item => 
     item.studentName.includes(searchTerm) || 
     item.className.includes(searchTerm) ||
     item.gradeName.includes(searchTerm) ||
-    item.prayer.includes(searchTerm)
+    item.note.includes(searchTerm)
   )
 
   return (
-    <div className="prayer-view">
+    <div className="prayer-view"> {/* 동일한 스타일 클래스 사용 */}
       <div className="prayer-header-section">
-        <h2>주간 기도제목</h2>
+        <h2>주간 특이사항</h2>
         <div className="week-info">{weekId}</div>
       </div>
 
@@ -81,24 +79,24 @@ export default function PrayerView({ data, dailyData }) {
         />
       </div>
 
-      <h3>전체 기도제목 ({filteredPrayers.length}개)</h3>
+      <h3>전체 특이사항 ({filteredNotes.length}개)</h3>
       
-      {filteredPrayers.length === 0 ? (
+      {filteredNotes.length === 0 ? (
         <p className="empty-message">
-          {searchTerm ? '검색 결과가 없습니다.' : '이번 주 기도제목이 없습니다.'}
+          {searchTerm ? '검색 결과가 없습니다.' : '이번 주 특이사항이 없습니다.'}
         </p>
       ) : (
-        <div className="prayers-list">
-          {filteredPrayers.map((item, idx) => (
-            <div key={idx} className="prayer-item">
-              <div className="prayer-header-info">
+        <div className="prayers-list"> {/* 동일한 스타일 클래스 사용 */}
+          {filteredNotes.map((item, idx) => (
+            <div key={idx} className="notes-item"> {/* notes-item 클래스 적용 */}
+              <div className="prayer-header-info"> {/* 동일한 스타일 클래스 사용 */}
                 <div>
                   <span className="grade-class">{item.gradeName} {item.className}</span>
                   <span className="student-name">{item.studentName}</span>
                 </div>
                 <span className={`attendance-check ${item.attendance ? 'present' : 'absent'}`}>V</span>
               </div>
-              <p className="prayer-text">{item.prayer}</p>
+              <p className="prayer-text">{item.note}</p> {/* note 내용 표시 */}
             </div>
           ))}
         </div>

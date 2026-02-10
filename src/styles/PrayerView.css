@@ -108,12 +108,51 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
+.notes-item {
+    background-color: var(--light-gray);
+    border-left: 4px solid #f59e0b; /* 주황색 border-left */
+    padding: calc(var(--grid-size) * 2) calc(var(--grid-size) * 3);
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.notes-item:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
 .prayer-header-info {
     display: flex;
+    justify-content: space-between; /* 아이콘을 오른쪽으로 */
     align-items: center;
     margin-bottom: calc(var(--grid-size));
     flex-wrap: wrap;
     gap: calc(var(--grid-size));
+}
+
+.prayer-header-info > div { /* grade-class와 student-name을 감싸는 div */
+    align-items: center;
+    flex-wrap: wrap;
+    gap: calc(var(--grid-size));
+}
+
+.attendance-check {
+    font-size: 1.2rem;
+    font-weight: 800;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: var(--white);
+}
+
+.attendance-check.present {
+    background-color: #10b981; /* 초록색 */
+}
+
+.attendance-check.absent {
+    background-color: #ef4444; /* 빨간색 */
 }
 
 .grade-class {
@@ -126,6 +165,7 @@
 }
 
 .student-name {
+    margin-left: 0.5rem;
     font-size: 0.95rem;
     font-weight: 600;
     color: var(--main-text);
