@@ -112,8 +112,6 @@ export default function StudentManagement({ data, onDataUpdate }) {
                 <tr>
                   <th>번호</th>
                   <th>이름</th>
-                  <th>기도제목</th>
-                  <th>특이사항</th>
                   <th>작업</th>
                 </tr>
               </thead>
@@ -138,8 +136,6 @@ export default function StudentManagement({ data, onDataUpdate }) {
                         student.name
                       )}
                     </td>
-                    <td>{student.prayerRequests?.length || 0}개</td>
-                    <td>{student.notes ? '✓' : '-'}</td>
                     <td className="actions">
                       {editingStudentId === student.studentId ? (
                         <button 
