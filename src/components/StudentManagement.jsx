@@ -6,6 +6,7 @@ export default function StudentManagement({ data, onDataUpdate }) {
   const [selectedGrade, setSelectedGrade] = useState(data.grades[0].gradeId)
   const [selectedClass, setSelectedClass] = useState(data.grades[0].classes[0].classId)
   const [newStudentName, setNewStudentName] = useState('')
+  const [newStudentGender, setNewStudentGender] = useState('남') // 기본값 '남'
   const [editingStudentId, setEditingStudentId] = useState(null)
 
   const grade = data.grades.find(g => g.gradeId === selectedGrade)
@@ -22,6 +23,7 @@ export default function StudentManagement({ data, onDataUpdate }) {
     const newStudent = {
       studentId: newStudentId,
       name: newStudentName,
+      gender: newStudentGender,
       prayerRequests: [],
       notes: '',
       attendance: true
@@ -30,6 +32,7 @@ export default function StudentManagement({ data, onDataUpdate }) {
     const newData = addStudent(data, selectedGrade, selectedClass, newStudent)
     onDataUpdate(newData)
     setNewStudentName('')
+    setNewStudentGender('남') // 초기화
   }
 
   const handleDeleteStudent = (studentId) => {
@@ -92,6 +95,24 @@ export default function StudentManagement({ data, onDataUpdate }) {
             value={newStudentName}
             onChange={e => setNewStudentName(e.target.value)}
           />
+          <div className="gender-select">
+            <label>
+              <input 
+                type="radio" 
+                value="남" 
+                checked={newStudentGender === '남'} 
+                onChange={e => setNewStudentGender(e.target.value)} 
+              /> 남
+            </label>
+            <label>
+              <input 
+                type="radio" 
+                value="여" 
+                checked={newStudentGender === '여'} 
+                onChange={e => setNewStudentGender(e.target.value)} 
+              /> 여
+            </label>
+          </div>
           <button onClick={handleAddStudent} className="btn-primary">
             추가
           </button>
@@ -112,6 +133,7 @@ export default function StudentManagement({ data, onDataUpdate }) {
                 <tr>
                   <th>번호</th>
                   <th>이름</th>
+                  <th>성별</th>
                   <th>작업</th>
                 </tr>
               </thead>
@@ -136,6 +158,7 @@ export default function StudentManagement({ data, onDataUpdate }) {
                         student.name
                       )}
                     </td>
+                    <td>{student.gender === '남' ? '🙋🏼‍♂️' : '🙋🏻‍♀️'}</td>
                     <td className="actions">
                       {editingStudentId === student.studentId ? (
                         <button 

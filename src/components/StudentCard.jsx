@@ -10,7 +10,12 @@ export default function StudentCard({
   return (
     <div className={`student-card ${dayData?.attendance ? '' : 'absent'}`}>
       <div className="student-header">
-        <h3>{student.name}</h3>
+        <div className="student-info">
+          <h3>{student.name}</h3>
+          <span className="gender-emoji">
+            {student.gender === '남' ? '🙋🏼‍♂️' : '🙋🏻‍♀️'}
+          </span>
+        </div>
         <button
           className={`attendance-btn ${dayData?.attendance ? 'present' : 'absent'}`}
           onClick={onAttendanceClick}

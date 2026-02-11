@@ -32,6 +32,7 @@ export default function NotesView({ data, dailyData }) {
               gradeName: grade.gradeName,
               className: classItem.className,
               studentName: student.name,
+              gender: student.gender,
               note: weekData.notes,
               date: weekId,
               attendance: weekData.attendance || false
@@ -93,6 +94,9 @@ export default function NotesView({ data, dailyData }) {
                 <div>
                   <span className="grade-class">{item.gradeName} {item.className}</span>
                   <span className="student-name">{item.studentName}</span>
+                  <span className="gender-emoji">
+                    {item.gender === '남' ? '🙋🏼‍♂️' : '🙋🏻‍♀️'}
+                  </span>
                 </div>
                 <span className="attendance-emoji">{item.attendance ? '✅' : '❌'}</span>
               </div>
