@@ -4,6 +4,24 @@
   gap: calc(var(--grid-size) * 3);
 }
 
+.class-management .input-group {
+  display: flex;
+  gap: calc(var(--grid-size) * 2);
+  flex-wrap: wrap; /* 화면이 좁을 때 줄바꿈 허용 */
+}
+
+.class-management .input-group input {
+  flex: 1;
+  min-width: 200px; /* 최소 너비 설정 */
+  padding: calc(var(--grid-size) * 2);
+  border: 1px solid var(--border-gray);
+  border-radius: 6px;
+}
+
+.class-management .input-group button {
+  white-space: nowrap; /* 버튼 텍스트 줄바꿈 방지 */
+}
+
 .classes-table {
   overflow-x: auto;
 }
@@ -11,11 +29,25 @@
 .classes-table table {
   width: 100%;
   border-collapse: collapse;
+  min-width: 600px; /* 테이블 최소 너비 설정 */
+}
+
+.classes-table th,
+.classes-table td {
+  padding: calc(var(--grid-size) * 2);
+  text-align: left;
+  border-bottom: 1px solid var(--border-gray);
+}
+
+.classes-table th {
+  background-color: var(--light-gray);
+  font-weight: 600;
+  color: var(--secondary-text);
 }
 
 .classes-table input {
   width: 100%;
-  padding: calc(var(--grid-size) * 2);
+  padding: calc(var(--grid-size));
   border: 1px solid var(--border-gray);
   border-radius: 4px;
   font-size: 0.95rem;
@@ -25,4 +57,16 @@
   outline: none;
   border-color: var(--primary-blue);
   box-shadow: 0 0 0 3px rgba(0, 149, 246, 0.1);
+}
+
+.classes-table .actions {
+  display: flex;
+  gap: calc(var(--grid-size));
+}
+
+.classes-table .btn-edit,
+.classes-table .btn-delete,
+.classes-table .btn-save {
+  padding: calc(var(--grid-size)) calc(var(--grid-size) * 1.5);
+  font-size: 0.875rem;
 }
