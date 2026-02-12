@@ -5,15 +5,16 @@
   display: flex;
   flex-direction: column;
   width: 100%;
+  gap: calc(var(--grid-size) * 3);
 }
 
 .header {
-  background-color: var(--white);
-  border-radius: 12px;
-  padding: calc(var(--grid-size) * 3);
-  margin-bottom: calc(var(--grid-size) * 3);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  border: 1px solid var(--border-gray);
+  background-color: var(--card-bg);
+  border-radius: var(--radius-lg);
+  padding: calc(var(--grid-size) * 4);
+  box-shadow: var(--shadow-md);
+  border: none; /* Remove border for cleaner look */
+  position: relative;
 }
 
 .header-top {
@@ -29,105 +30,90 @@
 }
 
 .back-button, .home-button {
-  background-color: var(--border-gray);
-  color: var(--main-text);
-  padding: calc(var(--grid-size) * 1.25) calc(var(--grid-size) * 2);
-  font-size: 0.875rem;
+  background-color: rgba(0, 0, 0, 0.05);
+  color: var(--text-primary);
+  padding: 8px 16px;
+  font-size: 0.9rem;
   font-weight: 500;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: none;
-  flex-shrink: 0;
+  border-radius: 20px;
+  transition: all 0.2s var(--ease-apple);
 }
 
 .back-button:hover, .home-button:hover {
-  background-color: #d4d4d8;
+  background-color: rgba(0, 0, 0, 0.1);
 }
 
 .header-content {
-  position: relative; /* breadcrumb positioning */
   text-align: center;
-  padding-top: calc(var(--grid-size) * 4); /* Space for breadcrumb */
+  padding-top: calc(var(--grid-size) * 2);
 }
 
 .breadcrumb {
-  position: absolute;
-  top: 0;
-  left: calc(var(--grid-size) * 3); /* 좌측에서 약간 떨어지도록 조정 */
   display: flex;
   align-items: center;
-  gap: calc(var(--grid-size));
+  justify-content: center;
+  gap: 8px;
   font-size: 0.9rem;
-  color: var(--secondary-text);
+  color: var(--text-secondary);
+  margin-bottom: 8px;
 }
 
 .breadcrumb button {
-  background: none;
-  border: none;
-  color: var(--primary-blue);
-  cursor: pointer;
-  padding: 0;
-  font-size: inherit;
+  color: var(--text-secondary);
+  font-weight: 500;
 }
 
 .breadcrumb button:hover {
-  text-decoration: underline;
+  color: var(--accent-color);
+  text-decoration: none;
 }
 
-.class-title-section {
-  /* 중앙 정렬을 유지하기 위해 flexbox 사용 */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+.class-title-section h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+  letter-spacing: -0.5px;
 }
 
-.header-content h1 {
-  font-size: 1.75rem;
-  margin-bottom: calc(var(--grid-size));
-}
-
-.header-content .teacher-info {
-  font-size: 1rem;
-  color: var(--secondary-text);
+.class-title-section .teacher-info {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
 }
 
 .date-selector-container {
-  background-color: var(--white);
-  border-radius: 8px;
-  padding: calc(var(--grid-size) * 2);
-  margin-bottom: calc(var(--grid-size) * 3);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  background-color: var(--card-bg);
+  border-radius: var(--radius-md);
+  padding: calc(var(--grid-size) * 3);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--grid-size) * 2);
 }
 
 .week-navigation {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: calc(var(--grid-size) * 2);
 }
 
 .week-range {
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 600;
-  color: var(--main-text);
+  color: var(--text-primary);
 }
 
 .week-btn {
-  background-color: var(--white);
-  border: 1px solid var(--border-gray);
-  color: var(--main-text);
-  padding: calc(var(--grid-size)) calc(var(--grid-size) * 2);
-  font-size: 0.875rem;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  background-color: transparent;
+  color: var(--accent-color);
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  font-weight: 500;
 }
 
 .week-btn:hover {
-  background-color: var(--light-gray);
-  border-color: var(--primary-blue);
+  background-color: rgba(0, 113, 227, 0.1);
+  border-radius: 8px;
 }
 
 .today-action {
@@ -136,58 +122,70 @@
 }
 
 .today-btn {
-  background-color: var(--border-gray);
-  color: var(--main-text);
-  padding: calc(var(--grid-size)) calc(var(--grid-size) * 3);
-  font-size: 0.875rem;
+  background-color: var(--text-primary);
+  color: white;
+  padding: 8px 24px;
+  font-size: 0.9rem;
   border-radius: 20px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: none;
+  font-weight: 500;
+  box-shadow: var(--shadow-md);
 }
 
 .today-btn:hover {
-  background-color: #d4d4d8;
+  background-color: #000000;
+  transform: translateY(-1px);
 }
 
 .filter-buttons {
   display: flex;
-  gap: calc(var(--grid-size));
-  margin-bottom: calc(var(--grid-size) * 3);
-  flex-wrap: wrap;
+  gap: 12px;
   justify-content: center;
+  padding: 4px;
+  background-color: rgba(118, 118, 128, 0.12);
+  border-radius: 12px;
+  width: fit-content;
+  margin: 0 auto;
 }
 
 .filter-btn {
-  background-color: var(--white);
-  border: 1px solid var(--border-gray);
-  color: var(--main-text);
-  padding: calc(var(--grid-size)) calc(var(--grid-size) * 2);
-  font-size: 0.875rem;
-  border-radius: 20px;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  background-color: transparent;
+  border: none;
+  color: var(--text-primary);
+  padding: 8px 20px;
+  font-size: 0.9rem;
+  border-radius: 8px;
+  font-weight: 500;
 }
 
 .filter-btn:hover {
-  border-color: var(--primary-blue);
+  opacity: 0.7;
 }
 
 .filter-btn.active {
-  background-color: var(--primary-blue);
-  color: var(--white);
-  border-color: var(--primary-blue);
+  background-color: var(--card-bg);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  font-weight: 600;
 }
 
 .students-container {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: calc(var(--grid-size) * 2);
+  gap: calc(var(--grid-size) * 3);
   padding-bottom: calc(var(--grid-size) * 4);
 }
 
 @media (max-width: 768px) {
   .students-container {
     grid-template-columns: 1fr;
+  }
+
+  .header-top {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .filter-buttons {
+    width: 100%;
+    overflow-x: auto;
   }
 }
