@@ -12,11 +12,16 @@
 }
 
 .student-management .input-group input[type="text"] {
-  flex: 1;
+  flex: 1; /* flex: 1 유지하여 반응형 대응 */
   min-width: 200px;
   padding: calc(var(--grid-size) * 2);
   border: 1px solid var(--border-gray);
   border-radius: 6px;
+}
+
+/* 버튼을 오른쪽으로 정렬하기 위해 추가 */
+.student-management .input-group button {
+  margin-left: auto;
 }
 
 .gender-select {
