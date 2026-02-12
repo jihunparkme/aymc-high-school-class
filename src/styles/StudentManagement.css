@@ -4,6 +4,64 @@
   gap: calc(var(--grid-size) * 3);
 }
 
+.student-management .input-group {
+  display: flex;
+  gap: calc(var(--grid-size) * 2);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.student-management .input-group input[type="text"] {
+  flex: 1;
+  min-width: 200px;
+  padding: calc(var(--grid-size) * 2);
+  border: 1px solid var(--border-gray);
+  border-radius: 6px;
+}
+
+.gender-select {
+  display: flex;
+  gap: calc(var(--grid-size));
+  align-items: center;
+}
+
+.gender-option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(var(--grid-size)) calc(var(--grid-size) * 2);
+  border: 1px solid var(--border-gray);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: var(--white);
+  color: var(--secondary-text);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.gender-option input {
+  display: none; /* 기본 라디오 버튼 숨김 */
+}
+
+.gender-option:hover {
+  background-color: var(--light-gray);
+}
+
+.gender-option.selected {
+  border-color: transparent;
+  color: var(--white);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.gender-option.selected.male {
+  background-color: #3b82f6; /* 파란색 */
+}
+
+.gender-option.selected.female {
+  background-color: #ec4899; /* 분홍색 */
+}
+
 .class-info {
   font-size: 0.95rem;
   color: var(--secondary-text);
@@ -20,4 +78,44 @@
 .students-table table {
   width: 100%;
   border-collapse: collapse;
+  min-width: 600px;
+}
+
+.students-table th,
+.students-table td {
+  padding: calc(var(--grid-size) * 2);
+  text-align: left;
+  border-bottom: 1px solid var(--border-gray);
+}
+
+.students-table th {
+  background-color: var(--light-gray);
+  font-weight: 600;
+  color: var(--secondary-text);
+}
+
+.students-table input {
+  width: 100%;
+  padding: calc(var(--grid-size));
+  border: 1px solid var(--border-gray);
+  border-radius: 4px;
+  font-size: 0.95rem;
+}
+
+.students-table input:focus {
+  outline: none;
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 3px rgba(0, 149, 246, 0.1);
+}
+
+.students-table .actions {
+  display: flex;
+  gap: calc(var(--grid-size));
+}
+
+.students-table .btn-edit,
+.students-table .btn-delete,
+.students-table .btn-save {
+  padding: calc(var(--grid-size)) calc(var(--grid-size) * 1.5);
+  font-size: 0.875rem;
 }

@@ -96,21 +96,23 @@ export default function StudentManagement({ data, onDataUpdate }) {
             onChange={e => setNewStudentName(e.target.value)}
           />
           <div className="gender-select">
-            <label>
+            <label className={`gender-option ${newStudentGender === '남' ? 'selected male' : ''}`}>
               <input 
                 type="radio" 
                 value="남" 
                 checked={newStudentGender === '남'} 
                 onChange={e => setNewStudentGender(e.target.value)} 
-              /> 남
+              /> 
+              <span>🙋🏼‍♂️ 남</span>
             </label>
-            <label>
+            <label className={`gender-option ${newStudentGender === '여' ? 'selected female' : ''}`}>
               <input 
                 type="radio" 
                 value="여" 
                 checked={newStudentGender === '여'} 
                 onChange={e => setNewStudentGender(e.target.value)} 
-              /> 여
+              /> 
+              <span>🙋🏻‍♀️ 여</span>
             </label>
           </div>
           <button onClick={handleAddStudent} className="btn-primary">
