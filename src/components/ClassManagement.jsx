@@ -7,6 +7,8 @@ export default function ClassManagement({ data, onDataUpdate }) {
   const [newClassName, setNewClassName] = useState('')
   const [newTeacherName, setNewTeacherName] = useState('')
   const [editingClassId, setEditingClassId] = useState(null)
+  const [tempClassName, setTempClassName] = useState('')
+  const [tempTeacherName, setTempTeacherName] = useState('')
 
   const grade = data.grades.find(g => g.gradeId === selectedGrade)
   const classes = grade.classes
@@ -31,25 +33,37 @@ export default function ClassManagement({ data, onDataUpdate }) {
     setNewTeacherName('')
   }
 
-  const handleDeleteClass = (classId) => {
-    if (confirm('정말 이 반을 삭제하시겠습니까? 학생 데이터도 함께 삭제됩니다.')) {
-      const newData = removeClass(data, selectedGrade, classId)
+  const handleDeleteClass = (classItem) => {
+    if (confirm(`${grade.gradeName} ${classItem.className}을(를) 삭제하시겠습니까? 학생 데이터도 함께 삭제됩니다.`)) {
+      const newData = removeClass(data, selectedGrade, classItem.classId)
       onDataUpdate(newData)
     }
   }
 
-  const handleUpdateClass = (classId, className, teacherName) => {
-    if (!className.trim() || !teacherName.trim()) {
+  const handleEditStart = (classItem) => {
+    setEditingClassId(classItem.classId)
+    setTempClassName(classItem.className)
+    setTempTeacherName(classItem.teacherName)
+  }
+
+  const handleEditSave = (classId) => {
+    if (!tempClassName.trim() || !tempTeacherName.trim()) {
       alert('반 이름과 담임선생님 이름을 입력하세요.')
       return
     }
 
     const newData = updateClass(data, selectedGrade, classId, {
-      className,
-      teacherName
+      className: tempClassName,
+      teacherName: tempTeacherName
     })
     onDataUpdate(newData)
     setEditingClassId(null)
+  }
+
+  const handleEditCancel = () => {
+    setEditingClassId(null)
+    setTempClassName('')
+    setTempTeacherName('')
   }
 
   return (
@@ -114,14 +128,8 @@ export default function ClassManagement({ data, onDataUpdate }) {
                       {editingClassId === classItem.classId ? (
                         <input
                           type="text"
-                          defaultValue={classItem.className}
-                          onChange={e => {
-                            const newName = e.target.value
-                            const newData = updateClass(data, selectedGrade, classItem.classId, {
-                              className: newName
-                            })
-                            onDataUpdate(newData)
-                          }}
+                          value={tempClassName}
+                          onChange={e => setTempClassName(e.target.value)}
                         />
                       ) : (
                         classItem.className
@@ -131,14 +139,8 @@ export default function ClassManagement({ data, onDataUpdate }) {
                       {editingClassId === classItem.classId ? (
                         <input
                           type="text"
-                          defaultValue={classItem.teacherName}
-                          onChange={e => {
-                            const newName = e.target.value
-                            const newData = updateClass(data, selectedGrade, classItem.classId, {
-                              teacherName: newName
-                            })
-                            onDataUpdate(newData)
-                          }}
+                          value={tempTeacherName}
+                          onChange={e => setTempTeacherName(e.target.value)}
                         />
                       ) : (
                         classItem.teacherName
@@ -147,26 +149,40 @@ export default function ClassManagement({ data, onDataUpdate }) {
                     <td>{classItem.students.length}명</td>
                     <td className="actions">
                       {editingClassId === classItem.classId ? (
-                        <button 
-                          onClick={() => setEditingClassId(null)}
-                          className="btn-save"
-                        >
-                          완료
-                        </button>
+                        <>
+                          <button 
+                            onClick={() => handleEditSave(classItem.classId)}
+                            className="btn-save"
+                            title="저장"
+                          >
+                            ✅
+                          </button>
+                          <button 
+                            onClick={handleEditCancel}
+                            className="btn-save" // 스타일 재사용
+                            title="취소"
+                          >
+                            ❌
+                          </button>
+                        </>
                       ) : (
-                        <button 
-                          onClick={() => setEditingClassId(classItem.classId)}
-                          className="btn-edit"
-                        >
-                          수정
-                        </button>
+                        <>
+                          <button 
+                            onClick={() => handleEditStart(classItem)}
+                            className="btn-edit"
+                            title="수정"
+                          >
+                            ✏️
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteClass(classItem)}
+                            className="btn-delete"
+                            title="삭제"
+                          >
+                            🗑️
+                          </button>
+                        </>
                       )}
-                      <button 
-                        onClick={() => handleDeleteClass(classItem.classId)}
-                        className="btn-delete"
-                      >
-                        삭제
-                      </button>
                     </td>
                   </tr>
                 ))}

@@ -8,6 +8,7 @@ export default function StudentManagement({ data, onDataUpdate }) {
   const [newStudentName, setNewStudentName] = useState('')
   const [newStudentGender, setNewStudentGender] = useState('남') // 기본값 '남'
   const [editingStudentId, setEditingStudentId] = useState(null)
+  const [tempStudentName, setTempStudentName] = useState('')
 
   const grade = data.grades.find(g => g.gradeId === selectedGrade)
   const classItem = grade.classes.find(c => c.classId === selectedClass)
@@ -35,22 +36,32 @@ export default function StudentManagement({ data, onDataUpdate }) {
     setNewStudentGender('남') // 초기화
   }
 
-  const handleDeleteStudent = (studentId) => {
-    if (confirm('정말 이 학생을 삭제하시겠습니까?')) {
-      const newData = removeStudent(data, selectedGrade, selectedClass, studentId)
+  const handleDeleteStudent = (student) => {
+    if (confirm(`${grade.gradeName} ${classItem.className} ${student.name}을(를) 삭제하시겠습니까?`)) {
+      const newData = removeStudent(data, selectedGrade, selectedClass, student.studentId)
       onDataUpdate(newData)
     }
   }
 
-  const handleUpdateStudent = (studentId, newName) => {
-    if (!newName.trim()) {
+  const handleEditStart = (student) => {
+    setEditingStudentId(student.studentId)
+    setTempStudentName(student.name)
+  }
+
+  const handleEditSave = (studentId) => {
+    if (!tempStudentName.trim()) {
       alert('학생 이름을 입력하세요.')
       return
     }
 
-    const newData = updateStudent(data, selectedGrade, selectedClass, studentId, newName)
+    const newData = updateStudent(data, selectedGrade, selectedClass, studentId, tempStudentName)
     onDataUpdate(newData)
     setEditingStudentId(null)
+  }
+
+  const handleEditCancel = () => {
+    setEditingStudentId(null)
+    setTempStudentName('')
   }
 
   return (
@@ -147,11 +158,11 @@ export default function StudentManagement({ data, onDataUpdate }) {
                       {editingStudentId === student.studentId ? (
                         <input
                           type="text"
-                          defaultValue={student.name}
-                          onBlur={(e) => handleUpdateStudent(student.studentId, e.target.value)}
+                          value={tempStudentName}
+                          onChange={e => setTempStudentName(e.target.value)}
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') {
-                              handleUpdateStudent(student.studentId, e.currentTarget.value)
+                              handleEditSave(student.studentId)
                             }
                           }}
                           autoFocus
@@ -163,26 +174,40 @@ export default function StudentManagement({ data, onDataUpdate }) {
                     <td>{student.gender === '남' ? '🙋🏼‍♂️' : '🙋🏻‍♀️'}</td>
                     <td className="actions">
                       {editingStudentId === student.studentId ? (
-                        <button 
-                          onClick={() => setEditingStudentId(null)}
-                          className="btn-save"
-                        >
-                          취소
-                        </button>
+                        <>
+                          <button 
+                            onClick={() => handleEditSave(student.studentId)}
+                            className="btn-save"
+                            title="저장"
+                          >
+                            ✅
+                          </button>
+                          <button 
+                            onClick={handleEditCancel}
+                            className="btn-save" // 스타일 재사용
+                            title="취소"
+                          >
+                            ❌
+                          </button>
+                        </>
                       ) : (
-                        <button 
-                          onClick={() => setEditingStudentId(student.studentId)}
-                          className="btn-edit"
-                        >
-                          수정
-                        </button>
+                        <>
+                          <button 
+                            onClick={() => handleEditStart(student)}
+                            className="btn-edit"
+                            title="수정"
+                          >
+                            ✏️
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteStudent(student)}
+                            className="btn-delete"
+                            title="삭제"
+                          >
+                            🗑️
+                          </button>
+                        </>
                       )}
-                      <button 
-                        onClick={() => handleDeleteStudent(student.studentId)}
-                        className="btn-delete"
-                      >
-                        삭제
-                      </button>
                     </td>
                   </tr>
                 ))}
