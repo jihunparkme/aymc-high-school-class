@@ -6,19 +6,16 @@ import AttendanceManagement from './AttendanceManagement' // AttendanceManagemen
 import ClassManagement from './ClassManagement'
 import StudentManagement from './StudentManagement'
 import DataManagement from './DataManagement'
-import { saveToLocalStorage } from '../utils/dataManager'
 
 export default function AdminPanel({ data, setData, dailyData, setDailyData, onBack, onHome }) {
   const [activeTab, setActiveTab] = useState('attendance') // 기본 탭을 출결로 설정
 
   const handleDataUpdate = (newData) => {
     setData(newData)
-    saveToLocalStorage(newData, dailyData)
   }
 
   const handleDailyDataUpdate = (newDailyData) => {
     setDailyData(newDailyData)
-    saveToLocalStorage(data, newDailyData)
   }
 
   return (

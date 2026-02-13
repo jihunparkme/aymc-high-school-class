@@ -5,7 +5,7 @@ import ClassSelector from './components/ClassSelector'
 import StudentList from './components/StudentList'
 import AdminPanel from './components/AdminPanel'
 import ScrollToTopButton from './components/ScrollToTopButton'
-import { initializeData, initializeDailyData, saveToLocalStorage, loadFromLocalStorage, createDailyBackup } from './utils/dataManager'
+import { loadFromSupabase } from './utils/dataManager'
 
 function App() {
   const [appState, setAppState] = useState('gradeSelect')
@@ -19,7 +19,7 @@ function App() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const loaded = await loadFromLocalStorage()
+        const loaded = await loadFromSupabase()
         setData(loaded.data || initializeData())
         setDailyData(loaded.dailyData || initializeDailyData())
       } catch (error) {
@@ -74,48 +74,6 @@ function App() {
     // 하지만 여기서는 pushState로 홈 상태를 추가하여 히스토리를 유지
     navigateTo('gradeSelect', null, null)
   }
-
-  // 데이터 변경 시 저장
-  useEffect(() => {
-    if (data && !isLoading) {
-      saveToLocalStorage(data, dailyData)
-    }
-  }, [data, dailyData, isLoading])
-
-  // 1시간마다 자동 백업
-  useEffect(() => {
-    if (!data || isLoading) return
-    
-    const backupInterval = setInterval(() => {
-      saveToLocalStorage(data, dailyData)
-    }, 60 * 60 * 1000)
-
-    return () => clearInterval(backupInterval)
-  }, [data, dailyData, isLoading])
-
-  // 자정마다 백업 (데이터 초기화는 하지 않음 - 과거 데이터 보존)
-  useEffect(() => {
-    if (!data || isLoading) return
-
-    const checkMidnight = () => {
-      const now = new Date()
-      const nextMidnight = new Date(now)
-      nextMidnight.setHours(24, 0, 0, 0)
-      const timeUntilMidnight = nextMidnight - now
-
-      const midnightTimer = setTimeout(() => {
-        // 자정이 되면 현재 상태를 백업
-        createDailyBackup(data, dailyData)
-        // 다음 자정 체크
-        checkMidnight()
-      }, timeUntilMidnight)
-
-      return () => clearTimeout(midnightTimer)
-    }
-
-    return checkMidnight()
-  }, [data, dailyData, isLoading])
-
 
   if (isLoading || !data) return <div className="loading">로딩중...</div>
 

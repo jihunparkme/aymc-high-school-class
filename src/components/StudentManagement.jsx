@@ -14,13 +14,15 @@ export default function StudentManagement({ data, onDataUpdate }) {
   const classItem = grade.classes.find(c => c.classId === selectedClass)
   const students = classItem.students
 
-  const handleAddStudent = () => {
+  const handleAddStudent = async () => {
     if (!newStudentName.trim()) {
       alert('학생 이름을 입력하세요.')
       return
     }
 
-    const newStudentId = `${selectedClass}-${students.length + 1}`
+    // Generate ID (Simple logic for now, ideally UUID)
+    const newStudentId = `${selectedClass}-${Date.now()}`
+    
     const newStudent = {
       studentId: newStudentId,
       name: newStudentName,
@@ -30,16 +32,35 @@ export default function StudentManagement({ data, onDataUpdate }) {
       attendance: true
     }
 
-    const newData = addStudent(data, selectedGrade, selectedClass, newStudent)
-    onDataUpdate(newData)
-    setNewStudentName('')
-    setNewStudentGender('남') // 초기화
+    const success = await addStudent(selectedClass, newStudent)
+
+    if (success) {
+      const newData = JSON.parse(JSON.stringify(data))
+      const targetGrade = newData.grades.find(g => g.gradeId === selectedGrade)
+      const targetClass = targetGrade.classes.find(c => c.classId === selectedClass)
+      targetClass.students.push(newStudent)
+      onDataUpdate(newData)
+      
+      setNewStudentName('')
+      setNewStudentGender('남') // 초기화
+    } else {
+      alert('학생 추가에 실패했습니다.')
+    }
   }
 
-  const handleDeleteStudent = (student) => {
+  const handleDeleteStudent = async (student) => {
     if (confirm(`${grade.gradeName} ${classItem.className} ${student.name}을(를) 삭제하시겠습니까?`)) {
-      const newData = removeStudent(data, selectedGrade, selectedClass, student.studentId)
-      onDataUpdate(newData)
+      const success = await removeStudent(student.studentId)
+      
+      if (success) {
+        const newData = JSON.parse(JSON.stringify(data))
+        const targetGrade = newData.grades.find(g => g.gradeId === selectedGrade)
+        const targetClass = targetGrade.classes.find(c => c.classId === selectedClass)
+        targetClass.students = targetClass.students.filter(s => s.studentId !== student.studentId)
+        onDataUpdate(newData)
+      } else {
+        alert('학생 삭제에 실패했습니다.')
+      }
     }
   }
 
@@ -48,15 +69,26 @@ export default function StudentManagement({ data, onDataUpdate }) {
     setTempStudentName(student.name)
   }
 
-  const handleEditSave = (studentId) => {
+  const handleEditSave = async (studentId) => {
     if (!tempStudentName.trim()) {
       alert('학생 이름을 입력하세요.')
       return
     }
 
-    const newData = updateStudent(data, selectedGrade, selectedClass, studentId, tempStudentName)
-    onDataUpdate(newData)
-    setEditingStudentId(null)
+    const success = await updateStudent(studentId, tempStudentName)
+
+    if (success) {
+      const newData = JSON.parse(JSON.stringify(data))
+      const targetGrade = newData.grades.find(g => g.gradeId === selectedGrade)
+      const targetClass = targetGrade.classes.find(c => c.classId === selectedClass)
+      const targetStudent = targetClass.students.find(s => s.studentId === studentId)
+      targetStudent.name = tempStudentName
+      onDataUpdate(newData)
+      
+      setEditingStudentId(null)
+    } else {
+      alert('학생 수정에 실패했습니다.')
+    }
   }
 
   const handleEditCancel = () => {

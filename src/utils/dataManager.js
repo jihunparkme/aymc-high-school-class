@@ -1,16 +1,12 @@
-const STORAGE_KEY = 'aymc_student_data'
-const DAILY_STORAGE_KEY = 'aymc_student_daily_data'
-const BACKUP_KEY = 'aymc_student_backup'
+import { supabase } from './supabaseClient'
 
-// --- New Date Functions ---
+// --- Date Helper Functions ---
 
-// Get the week number of a month
 export const getWeekOfMonth = (date) => {
   const firstDay = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
   return Math.ceil((date.getDate() + firstDay) / 7);
 }
 
-// Format date to "YYYY년 MM월 W주차"
 export const getWeekId = (date) => {
   const year = date.getFullYear();
   const month = date.getMonth() + 1;
@@ -18,452 +14,291 @@ export const getWeekId = (date) => {
   return `${year}년 ${String(month).padStart(2, '0')}월 ${week}주차`;
 }
 
-// Get the start date of a week (Sunday) from a weekId
 export const getWeekStartDateFromId = (weekId) => {
   const [year, month, week] = weekId.replace('년', '').replace('월', '').replace('주차', '').split(' ').map(Number);
   const firstDayOfMonth = new Date(year, month - 1, 1);
-  const firstDayOfWeek = firstDayOfMonth.getDay(); // 0 for Sunday, 1 for Monday...
+  const firstDayOfWeek = firstDayOfMonth.getDay();
   const dayOffset = (week - 1) * 7 - firstDayOfWeek;
   return new Date(year, month - 1, 1 + dayOffset);
 };
 
-
-export const initializeData = () => {
-  const today = new Date().toISOString().split('T')[0]
-  
-  return {
-    date: today,
-    grades: [
-      {
-        gradeId: '1',
-        gradeName: '1학년',
-        classes: [
-          {
-            classId: '1-1',
-            className: '1반',
-            teacherName: '김선생님',
-            students: [
-              { studentId: '1-1-1', name: '이준호', gender: '남' },
-              { studentId: '1-1-2', name: '김하늘', gender: '여' },
-              { studentId: '1-1-3', name: '박미현', gender: '여' },
-              { studentId: '1-1-4', name: '정성은', gender: '여' },
-              { studentId: '1-1-5', name: '이서윤', gender: '여' },
-              { studentId: '1-1-6', name: '오준석', gender: '남' },
-              { studentId: '1-1-7', name: '정유진', gender: '여' },
-              { studentId: '1-1-8', name: '최은준', gender: '남' },
-              { studentId: '1-1-9', name: '한지원', gender: '여' },
-              { studentId: '1-1-10', name: '강동현', gender: '남' },
-            ]
-          },
-          {
-            classId: '1-2',
-            className: '2반',
-            teacherName: '이선생님',
-            students: [
-              { studentId: '1-2-1', name: '박준혁', gender: '남' },
-              { studentId: '1-2-2', name: '정예은', gender: '여' },
-              { studentId: '1-2-3', name: '김진호', gender: '남' },
-              { studentId: '1-2-4', name: '이현지', gender: '여' },
-              { studentId: '1-2-5', name: '최민준', gender: '남' },
-              { studentId: '1-2-6', name: '권서진', gender: '여' },
-              { studentId: '1-2-7', name: '오지수', gender: '여' },
-              { studentId: '1-2-8', name: '박선주', gender: '여' },
-              { studentId: '1-2-9', name: '한승환', gender: '남' },
-              { studentId: '1-2-10', name: '정민지', gender: '여' },
-            ]
-          },
-          {
-            classId: '1-3',
-            className: '3반',
-            teacherName: '박선생님',
-            students: [
-              { studentId: '1-3-1', name: '강민수', gender: '남' },
-              { studentId: '1-3-2', name: '이소현', gender: '여' },
-              { studentId: '1-3-3', name: '김지호', gender: '남' },
-              { studentId: '1-3-4', name: '박영준', gender: '남' },
-              { studentId: '1-3-5', name: '정다은', gender: '여' },
-              { studentId: '1-3-6', name: '오예진', gender: '여' },
-              { studentId: '1-3-7', name: '최준서', gender: '남' },
-              { studentId: '1-3-8', name: '한나연', gender: '여' },
-              { studentId: '1-3-9', name: '권혜진', gender: '여' },
-              { studentId: '1-3-10', name: '이우진', gender: '남' },
-            ]
-          }
-        ]
-      },
-      {
-        gradeId: '2',
-        gradeName: '2학년',
-        classes: [
-          {
-            classId: '2-1',
-            className: '1반',
-            teacherName: '최선생님',
-            students: [
-              { studentId: '2-1-1', name: '박준영', gender: '남' },
-              { studentId: '2-1-2', name: '정서은', gender: '여' },
-              { studentId: '2-1-3', name: '김준호', gender: '남' },
-              { studentId: '2-1-4', name: '이나영', gender: '여' },
-              { studentId: '2-1-5', name: '오은정', gender: '여' },
-              { studentId: '2-1-6', name: '강현진', gender: '남' },
-              { studentId: '2-1-7', name: '최지환', gender: '남' },
-              { studentId: '2-1-8', name: '한승현', gender: '남' },
-              { studentId: '2-1-9', name: '권준호', gender: '남' },
-              { studentId: '2-1-10', name: '정혜미', gender: '여' },
-            ]
-          },
-          {
-            classId: '2-2',
-            className: '2반',
-            teacherName: '한선생님',
-            students: [
-              { studentId: '2-2-1', name: '이준혁', gender: '남' },
-              { studentId: '2-2-2', name: '박지은', gender: '여' },
-              { studentId: '2-2-3', name: '김소정', gender: '여' },
-              { studentId: '2-2-4', name: '정우진', gender: '남' },
-              { studentId: '2-2-5', name: '오미정', gender: '여' },
-              { studentId: '2-2-6', name: '최서영', gender: '여' },
-              { studentId: '2-2-7', name: '한준석', gender: '남' },
-              { studentId: '2-2-8', name: '권지현', gender: '여' },
-              { studentId: '2-2-9', name: '강나연', gender: '여' },
-              { studentId: '2-2-10', name: '정민서', gender: '여' },
-            ]
-          },
-          {
-            classId: '2-3',
-            className: '3반',
-            teacherName: '권선생님',
-            students: [
-              { studentId: '2-3-1', name: '박현준', gender: '남' },
-              { studentId: '2-3-2', name: '이지은', gender: '여' },
-              { studentId: '2-3-3', name: '김준서', gender: '남' },
-              { studentId: '2-3-4', name: '정혜진', gender: '여' },
-              { studentId: '2-3-5', name: '오준영', gender: '남' },
-              { studentId: '2-3-6', name: '최은지', gender: '여' },
-              { studentId: '2-3-7', name: '한민준', gender: '남' },
-              { studentId: '2-3-8', name: '권혜선', gender: '여' },
-              { studentId: '2-3-9', name: '강서진', gender: '남' },
-              { studentId: '2-3-10', name: '정준호', gender: '남' },
-            ]
-          }
-        ]
-      },
-      {
-        gradeId: '3',
-        gradeName: '3학년',
-        classes: [
-          {
-            classId: '3-1',
-            className: '1반',
-            teacherName: '조선생님',
-            students: [
-              { studentId: '3-1-1', name: '이현준', gender: '남' },
-              { studentId: '3-1-2', name: '박서영', gender: '여' },
-              { studentId: '3-1-3', name: '김준호', gender: '남' },
-              { studentId: '3-1-4', name: '정지은', gender: '여' },
-              { studentId: '3-1-5', name: '오은준', gender: '남' },
-              { studentId: '3-1-6', name: '최민지', gender: '여' },
-              { studentId: '3-1-7', name: '한준영', gender: '남' },
-              { studentId: '3-1-8', name: '권소정', gender: '여' },
-              { studentId: '3-1-9', name: '강준호', gender: '남' },
-              { studentId: '3-1-10', name: '정나연', gender: '여' },
-            ]
-          },
-          {
-            classId: '3-2',
-            className: '2반',
-            teacherName: '유선생님',
-            students: [
-              { studentId: '3-2-1', name: '박준혁', gender: '남' },
-              { studentId: '3-2-2', name: '이예은', gender: '여' },
-              { studentId: '3-2-3', name: '김지호', gender: '남' },
-              { studentId: '3-2-4', name: '정준서', gender: '남' },
-              { studentId: '3-2-5', name: '오서진', gender: '남' },
-              { studentId: '3-2-6', name: '최준호', gender: '남' },
-              { studentId: '3-2-7', name: '한지은', gender: '여' },
-              { studentId: '3-2-8', name: '권민준', gender: '남' },
-              { studentId: '3-2-9', name: '강혜진', gender: '여' },
-              { studentId: '3-2-10', name: '정우진', gender: '남' },
-            ]
-          },
-          {
-            classId: '3-3',
-            className: '3반',
-            teacherName: '이선생님',
-            students: [
-              { studentId: '3-3-1', name: '이준호', gender: '남' },
-              { studentId: '3-3-2', name: '박은진', gender: '여' },
-              { studentId: '3-3-3', name: '김준서', gender: '남' },
-              { studentId: '3-3-4', name: '정나영', gender: '여' },
-              { studentId: '3-3-5', name: '오지현', gender: '여' },
-              { studentId: '3-3-6', name: '최수진', gender: '여' },
-              { studentId: '3-3-7', name: '한준영', gender: '남' },
-              { studentId: '3-3-8', name: '권준호', gender: '남' },
-              { studentId: '3-3-9', name: '강은지', gender: '여' },
-              { studentId: '3-3-10', name: '정혜은', gender: '여' },
-            ]
-          }
-        ]
-      }
-    ]
-  }
-}
-
-export const initializeDailyData = () => {
-  return {}
-}
-
-const API_URL = import.meta.env.PROD 
-  ? 'https://aymc-high-school.vercel.app/api' 
-  : 'http://localhost:3001/api'
-
-// API를 통해 데이터 저장
-export const saveToLocalStorage = async (data, dailyData) => {
-  try {
-    // 먼저 로컬 스토리지에 저장 (오프라인 지원)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
-    localStorage.setItem(DAILY_STORAGE_KEY, JSON.stringify(dailyData))
-    localStorage.setItem(BACKUP_KEY, JSON.stringify(data))
-
-    // 서버에도 저장 시도 (실패해도 로컬 스토리지는 유지됨)
-    try {
-      await fetch(`${API_URL}/data`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ data, dailyData })
-      })
-    } catch (apiError) {
-      console.warn('Failed to save to server, using local storage only:', apiError)
-    }
-  } catch (error) {
-    console.error('Failed to save data:', error)
-  }
-}
-
-// 일일 백업 생성
-export const createDailyBackup = (data, dailyData) => {
-  try {
-    const date = new Date().toISOString().split('T')[0]
-    const backupKey = `aymc_backup_${date}`
-    const backupData = { data, dailyData }
-    localStorage.setItem(backupKey, JSON.stringify(backupData))
-    console.log(`Daily backup created for ${date}`)
-  } catch (error) {
-    console.error('Failed to create daily backup:', error)
-  }
-}
-
-// 백업 목록 조회
-export const getBackupsList = () => {
-  const backups = []
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i)
-    if (key.startsWith('aymc_backup_')) {
-      backups.push(key)
-    }
-  }
-  return backups.sort().reverse()
-}
-
-// 백업 로드
-export const loadBackup = (key) => {
-  const backup = localStorage.getItem(key)
-  return backup ? JSON.parse(backup) : null
-}
-
-// API를 통해 데이터 로드
-export const loadFromLocalStorage = async () => {
-  try {
-    // 먼저 서버에서 데이터 로드 시도
-    try {
-      const response = await fetch(`${API_URL}/data`)
-      if (response.ok) {
-        const serverData = await response.json()
-        return {
-          data: serverData.data || null,
-          dailyData: serverData.dailyData || {}
-        }
-      }
-    } catch (apiError) {
-      console.warn('Failed to load from server, using local storage:', apiError)
-    }
-
-    // 서버 실패 시 로컬 스토리지에서 로드
-    const data = localStorage.getItem(STORAGE_KEY)
-    const dailyData = localStorage.getItem(DAILY_STORAGE_KEY)
-    return {
-      data: data ? JSON.parse(data) : null,
-      dailyData: dailyData ? JSON.parse(dailyData) : {}
-    }
-  } catch (error) {
-    console.error('Failed to load data:', error)
-    return { data: null, dailyData: {} }
-  }
-}
-
-export const exportToJSON = (data, dailyData) => {
-  const exportData = {
-    data,
-    dailyData
-  }
-  const jsonString = JSON.stringify(exportData, null, 2)
-  const blob = new Blob([jsonString], { type: 'application/json' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = `student_data_${new Date().toISOString().split('T')[0]}.json`
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  URL.revokeObjectURL(url)
-}
-
-export const importFromJSON = (file) => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = (event) => {
-      try {
-        const importData = JSON.parse(event.target.result)
-        resolve(importData)
-      } catch (error) {
-        reject(new Error('Invalid JSON file'))
-      }
-    }
-    reader.onerror = () => reject(new Error('Failed to read file'))
-    reader.readAsText(file)
-  })
-}
-
-// 날짜별 학생 데이터 관리
-export const getStudentDailyData = (dailyData, studentId, date) => {
-  if (!dailyData[studentId]) {
-    return {
-      prayerRequests: [],
-      notes: '',
-      attendance: false
-    }
-  }
-  return dailyData[studentId][date] || {
-    prayerRequests: [],
-    notes: '',
-    attendance: false
-  }
-}
-
-export const updateStudentDailyData = (dailyData, studentId, date, updates) => {
-  const newData = JSON.parse(JSON.stringify(dailyData))
-  if (!newData[studentId]) {
-    newData[studentId] = {}
-  }
-  newData[studentId][date] = {
-    ...getStudentDailyData(newData, studentId, date),
-    ...updates
-  }
-  return newData
-}
-
-export const addPrayerRequest = (dailyData, studentId, date, prayer) => {
-  const current = getStudentDailyData(dailyData, studentId, date)
-  return updateStudentDailyData(dailyData, studentId, date, {
-    prayerRequests: [...(current.prayerRequests || []), prayer]
-  })
-}
-
-export const updateNotes = (dailyData, studentId, date, notes) => {
-  return updateStudentDailyData(dailyData, studentId, date, { notes })
-}
-
-export const updateAttendance = (dailyData, studentId, date, attendance) => {
-  return updateStudentDailyData(dailyData, studentId, date, { attendance })
-}
-
-// 다음 주 시작 날짜
 export const getNextWeek = (date) => {
   const d = new Date(date)
   d.setDate(d.getDate() + 7)
   return d
 }
 
-// 이전 주 시작 날짜
 export const getPreviousWeek = (date) => {
   const d = new Date(date)
   d.setDate(d.getDate() - 7)
   return d
 }
 
-// 오늘 날짜의 주로 이동
 export const getTodayWeek = () => {
   return new Date()
 }
 
-// 관리자 기능용 기존 함수들
-export const addClass = (data, gradeId, classItem) => {
-  const newData = JSON.parse(JSON.stringify(data))
-  const grade = newData.grades.find(g => g.gradeId === gradeId)
-  if (!grade) return data
-  
-  grade.classes.push(classItem)
-  return newData
-}
+// --- Data Loading (Supabase) ---
 
-export const removeClass = (data, gradeId, classId) => {
-  const newData = JSON.parse(JSON.stringify(data))
-  const grade = newData.grades.find(g => g.gradeId === gradeId)
-  if (!grade) return data
-  
-  grade.classes = grade.classes.filter(c => c.classId !== classId)
-  return newData
-}
+export const loadFromSupabase = async () => {
+  try {
+    // 1. Fetch basic school structure
+    const { data: grades, error: gradesError } = await supabase
+      .from('grades')
+      .select('*')
+      .order('id');
+    
+    if (gradesError) throw gradesError;
 
-export const updateClass = (data, gradeId, classId, updates) => {
-  const newData = JSON.parse(JSON.stringify(data))
-  const grade = newData.grades.find(g => g.gradeId === gradeId)
-  if (!grade) return data
-  
-  const classItem = grade.classes.find(c => c.classId === classId)
-  if (!classItem) return data
-  
-  Object.assign(classItem, updates)
-  return newData
-}
+    const { data: classes, error: classesError } = await supabase
+      .from('classes')
+      .select('*')
+      .order('id');
 
-export const addStudent = (data, gradeId, classId, student) => {
-  const newData = JSON.parse(JSON.stringify(data))
-  const grade = newData.grades.find(g => g.gradeId === gradeId)
-  if (!grade) return data
-  
-  const classItem = grade.classes.find(c => c.classId === classId)
-  if (!classItem) return data
-  
-  classItem.students.push(student)
-  return newData
-}
+    if (classesError) throw classesError;
 
-export const removeStudent = (data, gradeId, classId, studentId) => {
-  const newData = JSON.parse(JSON.stringify(data))
-  const grade = newData.grades.find(g => g.gradeId === gradeId)
-  if (!grade) return data
-  
-  const classItem = grade.classes.find(c => c.classId === classId)
-  if (!classItem) return data
-  
-  classItem.students = classItem.students.filter(s => s.studentId !== studentId)
-  return newData
-}
+    const { data: students, error: studentsError } = await supabase
+      .from('students')
+      .select('*')
+      .order('id');
 
-export const updateStudent = (data, gradeId, classId, studentId, newName) => {
-  const newData = JSON.parse(JSON.stringify(data))
-  const grade = newData.grades.find(g => g.gradeId === gradeId)
-  if (!grade) return data
+    if (studentsError) throw studentsError;
+
+    // 2. Fetch weekly records and prayer requests
+    const { data: weeklyRecords, error: recordsError } = await supabase
+      .from('weekly_records')
+      .select(`
+        *,
+        prayer_requests (
+          content
+        )
+      `);
+
+    if (recordsError) throw recordsError;
+
+    // 3. Transform to App's Data Structure
+    const schoolData = {
+      date: new Date().toISOString().split('T')[0],
+      grades: grades.map(grade => ({
+        gradeId: grade.id,
+        gradeName: grade.name,
+        classes: classes
+          .filter(c => c.grade_id === grade.id)
+          .map(c => ({
+            classId: c.id,
+            className: c.name,
+            teacherName: c.teacher_name,
+            students: students
+              .filter(s => s.class_id === c.id)
+              .map(s => ({
+                studentId: s.id,
+                name: s.name,
+                gender: s.gender
+              }))
+          }))
+      }))
+    };
+
+    // 4. Transform to DailyData Structure
+    const dailyData = {};
+    weeklyRecords.forEach(record => {
+      if (!dailyData[record.student_id]) {
+        dailyData[record.student_id] = {};
+      }
+      
+      dailyData[record.student_id][record.week_id] = {
+        attendance: record.attendance,
+        notes: record.notes || '',
+        prayerRequests: record.prayer_requests.map(pr => pr.content)
+      };
+    });
+
+    return { data: schoolData, dailyData };
+
+  } catch (error) {
+    console.error('Failed to load data from Supabase:', error);
+    return { data: null, dailyData: {} };
+  }
+};
+
+// --- Data Saving (Supabase Actions) ---
+
+// Helper to get or create weekly record
+const ensureWeeklyRecord = async (studentId, weekId) => {
+  const { data, error } = await supabase
+    .from('weekly_records')
+    .select('id')
+    .eq('student_id', studentId)
+    .eq('week_id', weekId)
+    .single();
+
+  if (data) return data.id;
+
+  const { data: newRecord, error: insertError } = await supabase
+    .from('weekly_records')
+    .insert({ student_id: studentId, week_id: weekId })
+    .select('id')
+    .single();
   
-  const classItem = grade.classes.find(c => c.classId === classId)
-  if (!classItem) return data
-  
-  const student = classItem.students.find(s => s.studentId === studentId)
-  if (!student) return data
-  
-  student.name = newName
-  return newData
-}
+  if (insertError) throw insertError;
+  return newRecord.id;
+};
+
+export const updateAttendance = async (studentId, weekId, attendance) => {
+  try {
+    const { error } = await supabase
+      .from('weekly_records')
+      .upsert({ 
+        student_id: studentId, 
+        week_id: weekId, 
+        attendance: attendance 
+      }, { onConflict: 'student_id, week_id' })
+      .select();
+
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error updating attendance:', error);
+    return false;
+  }
+};
+
+export const updateNotes = async (studentId, weekId, notes) => {
+  try {
+    const { error } = await supabase
+      .from('weekly_records')
+      .upsert({ 
+        student_id: studentId, 
+        week_id: weekId, 
+        notes: notes 
+      }, { onConflict: 'student_id, week_id' });
+
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error updating notes:', error);
+    return false;
+  }
+};
+
+export const addPrayerRequest = async (studentId, weekId, content) => {
+  try {
+    const recordId = await ensureWeeklyRecord(studentId, weekId);
+    
+    const { error } = await supabase
+      .from('prayer_requests')
+      .insert({
+        weekly_record_id: recordId,
+        content: content
+      });
+
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error adding prayer request:', error);
+    return false;
+  }
+};
+
+// --- Admin Actions (Direct DB Manipulation) ---
+
+export const addClass = async (gradeId, classItem) => {
+  try {
+    const { error } = await supabase
+      .from('classes')
+      .insert({
+        id: classItem.classId,
+        grade_id: gradeId,
+        name: classItem.className,
+        teacher_name: classItem.teacherName
+      });
+    
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error adding class:', error);
+    return false;
+  }
+};
+
+export const removeClass = async (classId) => {
+  try {
+    const { error } = await supabase
+      .from('classes')
+      .delete()
+      .eq('id', classId);
+      
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error removing class:', error);
+    return false;
+  }
+};
+
+export const updateClass = async (classId, updates) => {
+  try {
+    const { error } = await supabase
+      .from('classes')
+      .update({
+        name: updates.className,
+        teacher_name: updates.teacherName
+      })
+      .eq('id', classId);
+
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error updating class:', error);
+    return false;
+  }
+};
+
+export const addStudent = async (classId, student) => {
+  try {
+    const { error } = await supabase
+      .from('students')
+      .insert({
+        id: student.studentId,
+        class_id: classId,
+        name: student.name,
+        gender: student.gender
+      });
+
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error adding student:', error);
+    return false;
+  }
+};
+
+export const removeStudent = async (studentId) => {
+  try {
+    const { error } = await supabase
+      .from('students')
+      .delete()
+      .eq('id', studentId);
+
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error removing student:', error);
+    return false;
+  }
+};
+
+export const updateStudent = async (studentId, name) => {
+  try {
+    const { error } = await supabase
+      .from('students')
+      .update({ name: name })
+      .eq('id', studentId);
+
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error updating student:', error);
+    return false;
+  }
+};

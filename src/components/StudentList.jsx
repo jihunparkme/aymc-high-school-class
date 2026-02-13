@@ -2,7 +2,7 @@ import { useState } from 'react'
 import '../styles/StudentList.css'
 import StudentCard from './StudentCard'
 import InputModal from './InputModal'
-import { getNextWeek, getPreviousWeek, getTodayWeek, saveToLocalStorage, getWeekId } from '../utils/dataManager'
+import { getNextWeek, getPreviousWeek, getTodayWeek, getWeekId, updateAttendance, updateNotes, addPrayerRequest } from '../utils/dataManager'
 
 export default function StudentList({ 
   data, 
@@ -40,9 +40,10 @@ export default function StudentList({
     setModalType(null)
   }
 
-  const handleSave = (content) => {
+  const handleSave = async (content) => {
     if (!selectedStudent) return
     
+    // Optimistic UI Update
     const newDailyData = JSON.parse(JSON.stringify(dailyData))
     if (!newDailyData[selectedStudent.studentId]) {
       newDailyData[selectedStudent.studentId] = {}
@@ -57,16 +58,18 @@ export default function StudentList({
 
     if (modalType === 'prayer') {
       newDailyData[selectedStudent.studentId][weekId].prayerRequests.push(content)
+      await addPrayerRequest(selectedStudent.studentId, weekId, content)
     } else if (modalType === 'notes') {
       newDailyData[selectedStudent.studentId][weekId].notes = content
+      await updateNotes(selectedStudent.studentId, weekId, content)
     }
 
     setDailyData(newDailyData)
-    saveToLocalStorage(data, newDailyData)
     handleCloseModal()
   }
 
-  const handleToggleAttendance = (studentId) => {
+  const handleToggleAttendance = async (studentId) => {
+    // Optimistic UI Update
     const newDailyData = JSON.parse(JSON.stringify(dailyData))
     if (!newDailyData[studentId]) {
       newDailyData[studentId] = {}
@@ -79,9 +82,11 @@ export default function StudentList({
       }
     }
 
-    newDailyData[studentId][weekId].attendance = !newDailyData[studentId][weekId].attendance
+    const newAttendance = !newDailyData[studentId][weekId].attendance
+    newDailyData[studentId][weekId].attendance = newAttendance
+    
     setDailyData(newDailyData)
-    saveToLocalStorage(data, newDailyData)
+    await updateAttendance(studentId, weekId, newAttendance)
   }
 
   const handlePrevWeek = () => {

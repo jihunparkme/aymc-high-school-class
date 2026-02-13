@@ -13,13 +13,15 @@ export default function ClassManagement({ data, onDataUpdate }) {
   const grade = data.grades.find(g => g.gradeId === selectedGrade)
   const classes = grade.classes
 
-  const handleAddClass = () => {
+  const handleAddClass = async () => {
     if (!newClassName.trim() || !newTeacherName.trim()) {
       alert('반 이름과 담임선생님 이름을 입력하세요.')
       return
     }
 
-    const newClassId = `${selectedGrade}-${classes.length + 1}`
+    // Generate ID (Simple logic for now, ideally UUID)
+    const newClassId = `${selectedGrade}-${Date.now()}`
+    
     const newClass = {
       classId: newClassId,
       className: newClassName,
@@ -27,16 +29,33 @@ export default function ClassManagement({ data, onDataUpdate }) {
       students: []
     }
 
-    const newData = addClass(data, selectedGrade, newClass)
-    onDataUpdate(newData)
-    setNewClassName('')
-    setNewTeacherName('')
+    const success = await addClass(selectedGrade, newClass)
+    
+    if (success) {
+      const newData = JSON.parse(JSON.stringify(data))
+      const targetGrade = newData.grades.find(g => g.gradeId === selectedGrade)
+      targetGrade.classes.push(newClass)
+      onDataUpdate(newData)
+      
+      setNewClassName('')
+      setNewTeacherName('')
+    } else {
+      alert('반 추가에 실패했습니다.')
+    }
   }
 
-  const handleDeleteClass = (classItem) => {
+  const handleDeleteClass = async (classItem) => {
     if (confirm(`${grade.gradeName} ${classItem.className}을(를) 삭제하시겠습니까? 학생 데이터도 함께 삭제됩니다.`)) {
-      const newData = removeClass(data, selectedGrade, classItem.classId)
-      onDataUpdate(newData)
+      const success = await removeClass(classItem.classId)
+      
+      if (success) {
+        const newData = JSON.parse(JSON.stringify(data))
+        const targetGrade = newData.grades.find(g => g.gradeId === selectedGrade)
+        targetGrade.classes = targetGrade.classes.filter(c => c.classId !== classItem.classId)
+        onDataUpdate(newData)
+      } else {
+        alert('반 삭제에 실패했습니다.')
+      }
     }
   }
 
@@ -46,18 +65,31 @@ export default function ClassManagement({ data, onDataUpdate }) {
     setTempTeacherName(classItem.teacherName)
   }
 
-  const handleEditSave = (classId) => {
+  const handleEditSave = async (classId) => {
     if (!tempClassName.trim() || !tempTeacherName.trim()) {
       alert('반 이름과 담임선생님 이름을 입력하세요.')
       return
     }
 
-    const newData = updateClass(data, selectedGrade, classId, {
+    const updates = {
       className: tempClassName,
       teacherName: tempTeacherName
-    })
-    onDataUpdate(newData)
-    setEditingClassId(null)
+    }
+
+    const success = await updateClass(classId, updates)
+
+    if (success) {
+      const newData = JSON.parse(JSON.stringify(data))
+      const targetGrade = newData.grades.find(g => g.gradeId === selectedGrade)
+      const targetClass = targetGrade.classes.find(c => c.classId === classId)
+      targetClass.className = tempClassName
+      targetClass.teacherName = tempTeacherName
+      onDataUpdate(newData)
+      
+      setEditingClassId(null)
+    } else {
+      alert('반 수정에 실패했습니다.')
+    }
   }
 
   const handleEditCancel = () => {
