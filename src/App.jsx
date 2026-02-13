@@ -4,6 +4,7 @@ import GradeSelector from './components/GradeSelector'
 import ClassSelector from './components/ClassSelector'
 import StudentList from './components/StudentList'
 import AdminPanel from './components/AdminPanel'
+import ScrollToTopButton from './components/ScrollToTopButton'
 import { initializeData, initializeDailyData, saveToLocalStorage, loadFromLocalStorage, createDailyBackup } from './utils/dataManager'
 
 function App() {
@@ -138,6 +139,8 @@ function App() {
           onHome={() => setAppState('gradeSelect')}
         />
       )}
+      
+      <ScrollToTopButton />
     </div>
   )
 }
