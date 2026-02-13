@@ -33,6 +33,48 @@ function App() {
     loadData()
   }, [])
 
+  // 브라우저 히스토리 관리
+  useEffect(() => {
+    // 초기 상태를 히스토리에 저장 (replaceState 사용)
+    window.history.replaceState({ appState: 'gradeSelect', selectedGrade: null, selectedClass: null }, '')
+
+    const handlePopState = (event) => {
+      if (event.state) {
+        setAppState(event.state.appState)
+        setSelectedGrade(event.state.selectedGrade)
+        setSelectedClass(event.state.selectedClass)
+      } else {
+        // 상태가 없는 경우 초기 화면으로
+        setAppState('gradeSelect')
+        setSelectedGrade(null)
+        setSelectedClass(null)
+      }
+    }
+
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
+
+  // 화면 전환 함수 (히스토리 추가)
+  const navigateTo = (newState, grade = null, classItem = null) => {
+    setAppState(newState)
+    setSelectedGrade(grade)
+    setSelectedClass(classItem)
+    window.history.pushState({ appState: newState, selectedGrade: grade, selectedClass: classItem }, '')
+  }
+
+  // 뒤로가기 함수 (히스토리 뒤로가기)
+  const goBack = () => {
+    window.history.back()
+  }
+
+  // 홈으로 이동 함수 (히스토리 초기화 또는 홈으로 이동)
+  const goHome = () => {
+    // 홈으로 이동할 때는 히스토리를 쌓지 않고 초기 상태로 돌아가는 것이 좋을 수 있음
+    // 하지만 여기서는 pushState로 홈 상태를 추가하여 히스토리를 유지
+    navigateTo('gradeSelect', null, null)
+  }
+
   // 데이터 변경 시 저장
   useEffect(() => {
     if (data && !isLoading) {
@@ -83,10 +125,9 @@ function App() {
         <GradeSelector
           data={data}
           onSelectGrade={(grade) => {
-            setSelectedGrade(grade)
-            setAppState('classSelect')
+            navigateTo('classSelect', grade, null)
           }}
-          onAdminClick={() => setAppState('admin')}
+          onAdminClick={() => navigateTo('admin', null, null)}
         />
       )}
 
@@ -95,17 +136,10 @@ function App() {
           data={data}
           selectedGrade={selectedGrade}
           onSelectClass={(classItem) => {
-            setSelectedClass(classItem)
-            setAppState('studentList')
+            navigateTo('studentList', selectedGrade, classItem)
           }}
-          onBack={() => {
-            setSelectedGrade(null)
-            setAppState('gradeSelect')
-          }}
-          onHome={() => {
-            setSelectedGrade(null)
-            setAppState('gradeSelect')
-          }}
+          onBack={goBack}
+          onHome={goHome}
         />
       )}
 
@@ -117,15 +151,8 @@ function App() {
           setDailyData={setDailyData}
           selectedGrade={selectedGrade}
           selectedClass={selectedClass}
-          onBack={() => {
-            setSelectedClass(null)
-            setAppState('classSelect')
-          }}
-          onHome={() => {
-            setSelectedClass(null)
-            setSelectedGrade(null)
-            setAppState('gradeSelect')
-          }}
+          onBack={goBack}
+          onHome={goHome}
         />
       )}
 
@@ -135,8 +162,8 @@ function App() {
           setData={setData}
           dailyData={dailyData}
           setDailyData={setDailyData}
-          onBack={() => setAppState('gradeSelect')}
-          onHome={() => setAppState('gradeSelect')}
+          onBack={goBack}
+          onHome={goHome}
         />
       )}
       
