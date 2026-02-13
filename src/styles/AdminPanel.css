@@ -5,6 +5,8 @@
   display: flex;
   flex-direction: column;
   gap: calc(var(--grid-size) * 4);
+  width: 100%;
+  overflow-x: hidden;
 }
 
 .admin-header {
@@ -12,6 +14,8 @@
   justify-content: space-between;
   align-items: center;
   padding: calc(var(--grid-size) * 2) 0;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
 .header-left {
@@ -25,6 +29,7 @@
   font-weight: 700;
   color: var(--text-primary);
   letter-spacing: -0.5px;
+  white-space: nowrap;
 }
 
 .header-buttons {
@@ -39,6 +44,7 @@
   color: var(--text-primary);
   font-size: 0.9rem;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .back-button:hover, .home-button:hover {
@@ -51,12 +57,15 @@
   background-color: rgba(118, 118, 128, 0.12);
   padding: 4px;
   border-radius: 12px;
-  width: fit-content;
-  margin: 0 auto; /* Center align */
+  width: 100%; /* Full width */
+  margin: 0 auto;
+  flex-wrap: wrap; /* Allow tabs to wrap */
+  justify-content: center; /* Center tabs */
+  gap: 4px;
 }
 
 .tab-btn {
-  padding: 8px 24px;
+  padding: 8px 20px;
   border-radius: 8px;
   font-size: 0.9rem;
   font-weight: 500;
@@ -64,6 +73,8 @@
   background: transparent;
   transition: all 0.2s var(--ease-apple);
   white-space: nowrap;
+  flex: 1 1 auto;
+  text-align: center;
 }
 
 .tab-btn:hover {
@@ -85,6 +96,8 @@
   padding: calc(var(--grid-size) * 5);
   box-shadow: var(--shadow-md);
   min-height: 500px;
+  width: 100%;
+  overflow-x: auto;
 }
 
 /* Common Section Styles inside Admin Content */
@@ -105,4 +118,28 @@
   padding: 60px 0;
   color: var(--text-tertiary);
   font-size: 1rem;
+}
+
+@media (max-width: 768px) {
+  .admin-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-buttons {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .admin-tabs {
+    /* No more horizontal scroll */
+  }
+
+  .tab-btn {
+    /* flex-basis can be adjusted if needed */
+  }
+
+  .admin-content {
+    padding: calc(var(--grid-size) * 3);
+  }
 }
