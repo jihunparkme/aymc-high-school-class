@@ -5,7 +5,6 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  /* Subtle Apple-style gradient */
   background: radial-gradient(circle at 50% 0%, #F5F5F7 0%, #FFFFFF 100%);
 }
 
@@ -20,59 +19,61 @@
 
 .grade-selector > .header {
   text-align: center;
-  margin-bottom: calc(var(--grid-size) * 6);
+  margin-bottom: calc(var(--grid-size) * 5);
   width: 100%;
 }
 
 .logo-area {
-  margin-bottom: calc(var(--grid-size) * 2);
+  margin-bottom: calc(var(--grid-size) * 1.5);
 }
 
 .logo-icon {
-  font-size: 3.5rem;
+  /* Fluid font size for logo */
+  font-size: clamp(2rem, 5vw, 2.5rem);
   display: inline-block;
-  /* Soft shadow for depth */
-  filter: drop-shadow(0 8px 16px rgba(0,0,0,0.1));
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.08));
 }
 
 .grade-selector > .header h1 {
-  font-size: 2.5rem;
+  /* Fluid font size for title */
+  font-size: clamp(1.5rem, 4vw, 1.75rem);
   font-weight: 800;
-  color: var(--text-primary);
+  color: #1C1C1E;
   margin: 0;
-  line-height: 1.2;
-  letter-spacing: -1px;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
 }
 
 .date-badge {
   display: inline-block;
-  margin-top: calc(var(--grid-size) * 2);
-  padding: 6px 16px;
-  background-color: rgba(0, 0, 0, 0.05);
-  color: var(--text-secondary);
-  border-radius: 20px;
-  font-size: 0.9rem;
+  margin-top: calc(var(--grid-size) * 1.5);
+  padding: 6px 14px;
+  background-color: rgba(0, 149, 246, 0.08);
+  color: var(--primary-blue);
+  border-radius: 12px;
+  font-size: 0.85rem;
   font-weight: 600;
-  backdrop-filter: blur(10px);
+  letter-spacing: 0.01em;
 }
 
 .grades-container {
   width: 100%;
-  max-width: 420px;
+  max-width: 400px;
 }
 
 .section-title {
   text-align: center;
-  color: var(--text-secondary);
-  font-size: 1rem;
-  margin-bottom: calc(var(--grid-size) * 3);
+  color: var(--secondary-text);
+  font-size: 0.95rem;
+  margin-bottom: calc(var(--grid-size) * 2.5);
   font-weight: 500;
+  opacity: 0.8;
 }
 
 .grades-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: calc(var(--grid-size) * 2);
   width: 100%;
 }
 
@@ -80,22 +81,22 @@
   position: relative;
   display: flex;
   align-items: center;
-  background-color: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  padding: 20px;
-  border-radius: 20px;
+  background-color: var(--white);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  padding: calc(var(--grid-size) * 2.5);
+  border-radius: 16px;
   cursor: pointer;
-  transition: all 0.4s var(--ease-apple);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   width: 100%;
   text-align: left;
 }
 
 .grade-card:hover {
-  transform: scale(1.02);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
-  background-color: #FFFFFF;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 16px rgba(0, 149, 246, 0.12);
+  border-color: rgba(0, 149, 246, 0.2);
+  z-index: 1;
 }
 
 .grade-card:active {
@@ -103,73 +104,98 @@
 }
 
 .grade-icon-wrapper {
-  font-size: 2rem;
-  margin-right: 20px;
-  background-color: #F5F5F7;
-  width: 60px;
-  height: 60px;
+  font-size: clamp(1.5rem, 4vw, 2rem); /* Fluid icon size */
+  margin-right: calc(var(--grid-size) * 2.5);
+  background-color: #F2F2F7;
+  width: clamp(48px, 12vw, 56px); /* Fluid wrapper size */
+  height: clamp(48px, 12vw, 56px);
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 16px;
+  border-radius: 12px;
+  flex-shrink: 0; /* Prevent shrinking */
 }
 
 .grade-info {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
+  min-width: 0; /* Allow text truncation */
 }
 
 .grade-name {
-  font-size: 1.2rem;
+  font-size: clamp(1rem, 3vw, 1.1rem);
   font-weight: 700;
-  color: var(--text-primary);
+  color: #1C1C1E;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .grade-desc {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
+  font-size: clamp(0.75rem, 2.5vw, 0.85rem);
+  color: var(--secondary-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .grade-arrow {
-  opacity: 0.2;
-  transition: all 0.3s ease;
-  margin-left: 12px;
+  opacity: 0.3;
+  transition: opacity 0.3s ease;
+  margin-left: 8px;
+  flex-shrink: 0;
 }
 
 .grade-card:hover .grade-arrow {
   opacity: 1;
-  transform: translateX(4px);
 }
 
 .grade-card:hover .grade-arrow path {
-  stroke: var(--accent-color);
+  stroke: var(--primary-blue);
 }
 
 .footer {
   text-align: center;
   padding: calc(var(--grid-size) * 4);
+  background-color: transparent;
 }
 
 .admin-link {
   background: none;
   border: none;
-  color: var(--text-tertiary);
+  color: var(--secondary-text);
   font-size: 0.85rem;
   cursor: pointer;
   padding: 8px 16px;
   border-radius: 20px;
   transition: all 0.2s ease;
+  opacity: 0.7;
 }
 
 .admin-link:hover {
-  color: var(--text-primary);
   background-color: rgba(0, 0, 0, 0.05);
+  color: #1C1C1E;
+  opacity: 1;
 }
 
 .copyright {
   margin-top: calc(var(--grid-size));
-  font-size: 0.75rem;
-  color: var(--text-tertiary);
+  font-size: 0.7rem;
+  color: #AEAEB2;
+}
+
+@media (max-width: 480px) {
+  .grade-content-wrapper {
+    padding: calc(var(--grid-size) * 2);
+  }
+
+  .grade-card {
+    padding: calc(var(--grid-size) * 2);
+  }
+
+  .grade-icon-wrapper {
+    margin-right: calc(var(--grid-size) * 1.5);
+  }
 }

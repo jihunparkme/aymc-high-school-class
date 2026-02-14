@@ -13,7 +13,7 @@
   border-radius: var(--radius-lg);
   padding: calc(var(--grid-size) * 4);
   box-shadow: var(--shadow-md);
-  border: none; /* Remove border for cleaner look */
+  border: none;
   position: relative;
 }
 
@@ -22,12 +22,7 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: calc(var(--grid-size) * 2);
-  width: 100%; /* Ensure full width for space-between */
-}
-
-.header-buttons {
-  display: flex;
-  gap: calc(var(--grid-size));
+  width: 100%;
 }
 
 .back-button, .home-button {
@@ -38,6 +33,7 @@
   font-weight: 500;
   border-radius: 20px;
   transition: all 0.2s var(--ease-apple);
+  white-space: nowrap;
 }
 
 .back-button:hover, .home-button:hover {
@@ -70,15 +66,18 @@
 }
 
 .class-title-section h1 {
-  font-size: 2rem;
+  font-size: clamp(1.5rem, 5vw, 2rem); /* Fluid font size */
   font-weight: 700;
   color: var(--text-primary);
   margin-bottom: 4px;
   letter-spacing: -0.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .class-title-section .teacher-info {
-  font-size: 1.1rem;
+  font-size: clamp(0.9rem, 3vw, 1.1rem);
   color: var(--text-secondary);
 }
 
@@ -99,9 +98,10 @@
 }
 
 .week-range {
-  font-size: 1.1rem;
+  font-size: clamp(0.9rem, 3vw, 1.1rem);
   font-weight: 600;
   color: var(--text-primary);
+  white-space: nowrap;
 }
 
 .week-btn {
@@ -110,6 +110,7 @@
   padding: 8px 16px;
   font-size: 0.9rem;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .week-btn:hover {
@@ -130,6 +131,7 @@
   border-radius: 20px;
   font-weight: 500;
   box-shadow: var(--shadow-md);
+  white-space: nowrap;
 }
 
 .today-btn:hover {
@@ -139,23 +141,25 @@
 
 .filter-buttons {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   justify-content: center;
   padding: 4px;
   background-color: rgba(118, 118, 128, 0.12);
   border-radius: 12px;
   width: fit-content;
   margin: 0 auto;
+  flex-wrap: wrap; /* Allow wrapping on very small screens */
 }
 
 .filter-btn {
   background-color: transparent;
   border: none;
   color: var(--text-primary);
-  padding: 8px 20px;
-  font-size: 0.9rem;
+  padding: 6px 16px;
+  font-size: 0.85rem;
   border-radius: 8px;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .filter-btn:hover {
@@ -180,13 +184,24 @@
     grid-template-columns: 1fr;
   }
 
+  .header {
+    padding: calc(var(--grid-size) * 3);
+  }
+
   .header-top {
-    flex-direction: row; /* Ensure row direction on mobile */
-    gap: 0; /* Remove gap */
+    flex-direction: row;
+    gap: 0;
   }
 
   .filter-buttons {
     width: 100%;
     overflow-x: auto;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .filter-btn {
+    flex: 0 0 auto;
   }
 }

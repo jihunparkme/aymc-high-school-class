@@ -4,33 +4,6 @@
   gap: calc(var(--grid-size) * 4);
 }
 
-.info-box {
-  background-color: rgba(0, 113, 227, 0.05); /* Light blue bg */
-  border-left: 4px solid var(--accent-color);
-  padding: calc(var(--grid-size) * 3);
-  border-radius: var(--radius-sm);
-}
-
-.info-box h3 {
-  font-size: 1.1rem;
-  color: var(--accent-color);
-  margin-bottom: calc(var(--grid-size));
-  font-weight: 600;
-}
-
-.info-box p {
-  font-size: 0.95rem;
-  color: var(--text-primary);
-  line-height: 1.6;
-  margin: 0;
-}
-
-.info-text {
-  margin-top: calc(var(--grid-size) * 2);
-  font-size: 0.85rem !important;
-  color: var(--text-secondary) !important;
-}
-
 .actions {
   display: flex;
   gap: calc(var(--grid-size) * 2);

@@ -4,14 +4,6 @@ export default function DataManagement({ data, dailyData }) {
   
   return (
     <div className="data-management">
-      <div className="info-box">
-        <h3>💾 데이터 관리</h3>
-        <p className="info-text">
-          • 모든 데이터는 Supabase 데이터베이스에 안전하게 저장됩니다.<br/>
-          • 실시간으로 동기화되므로 별도의 저장이 필요하지 않습니다.
-        </p>
-      </div>
-
       <div className="data-info">
         <h4>데이터 구조</h4>
         <div className="stats">
