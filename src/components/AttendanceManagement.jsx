@@ -63,7 +63,7 @@ export default function AttendanceManagement({ data, dailyData }) {
             
             return (
               <div key={classItem.classId} className="class-section">
-                <h4>{classItem.className} ({classItem.teacherName}) - 출석: {present}명 / 결석: {absent}명</h4>
+                <h4>{classItem.className} ({classItem.teacherName})<br/>출석: {present}명 / 결석: {absent}명</h4>
                 <div className="student-attendance-list">
                   {classItem.students.map(student => {
                     const isPresent = dailyData[student.studentId]?.[weekId]?.attendance
