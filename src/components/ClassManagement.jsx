@@ -19,22 +19,26 @@ export default function ClassManagement({ data, onDataUpdate }) {
       return
     }
 
-    // Generate ID (Simple logic for now, ideally UUID)
-    const newClassId = `${selectedGrade}-${Date.now()}`
-    
     const newClass = {
-      classId: newClassId,
       className: newClassName,
       teacherName: newTeacherName,
       students: []
     }
 
-    const success = await addClass(selectedGrade, newClass)
+    const createdClass = await addClass(selectedGrade, newClass)
     
-    if (success) {
+    if (createdClass) {
       const newData = JSON.parse(JSON.stringify(data))
       const targetGrade = newData.grades.find(g => g.gradeId === selectedGrade)
-      targetGrade.classes.push(newClass)
+      
+      const newClassForState = {
+        classId: String(createdClass.id),
+        className: createdClass.name,
+        teacherName: createdClass.teacher_name,
+        students: []
+      }
+      
+      targetGrade.classes.push(newClassForState)
       onDataUpdate(newData)
       
       setNewClassName('')

@@ -64,15 +64,10 @@ export const loadFromSupabase = async () => {
 
     if (studentsError) throw studentsError;
 
-    // 2. Fetch weekly records and prayer requests
+    // 2. Fetch weekly records (prayer_requests is now TEXT)
     const { data: weeklyRecords, error: recordsError } = await supabase
       .from('weekly_records')
-      .select(`
-        *,
-        prayer_requests (
-          content
-        )
-      `);
+      .select('*');
 
     if (recordsError) throw recordsError;
 
@@ -80,18 +75,18 @@ export const loadFromSupabase = async () => {
     const schoolData = {
       date: new Date().toISOString().split('T')[0],
       grades: grades.map(grade => ({
-        gradeId: grade.id,
+        gradeId: String(grade.id), // Convert to String for consistency
         gradeName: grade.name,
         classes: classes
           .filter(c => c.grade_id === grade.id)
           .map(c => ({
-            classId: c.id,
+            classId: String(c.id), // Convert to String
             className: c.name,
             teacherName: c.teacher_name,
             students: students
               .filter(s => s.class_id === c.id)
               .map(s => ({
-                studentId: s.id,
+                studentId: String(s.id), // Convert to String
                 name: s.name,
                 gender: s.gender
               }))
@@ -102,14 +97,20 @@ export const loadFromSupabase = async () => {
     // 4. Transform to DailyData Structure
     const dailyData = {};
     weeklyRecords.forEach(record => {
-      if (!dailyData[record.student_id]) {
-        dailyData[record.student_id] = {};
+      const studentIdStr = String(record.student_id);
+      if (!dailyData[studentIdStr]) {
+        dailyData[studentIdStr] = {};
       }
       
-      dailyData[record.student_id][record.week_id] = {
+      // Convert TEXT prayer_requests to Array
+      const prayerRequestsArray = record.prayer_requests 
+        ? record.prayer_requests.split('\n').filter(p => p.trim() !== '') 
+        : [];
+
+      dailyData[studentIdStr][record.week_id] = {
         attendance: record.attendance,
         notes: record.notes || '',
-        prayerRequests: record.prayer_requests.map(pr => pr.content)
+        prayerRequests: prayerRequestsArray
       };
     });
 
@@ -123,33 +124,12 @@ export const loadFromSupabase = async () => {
 
 // --- Data Saving (Supabase Actions) ---
 
-// Helper to get or create weekly record
-const ensureWeeklyRecord = async (studentId, weekId) => {
-  const { data, error } = await supabase
-    .from('weekly_records')
-    .select('id')
-    .eq('student_id', studentId)
-    .eq('week_id', weekId)
-    .single();
-
-  if (data) return data.id;
-
-  const { data: newRecord, error: insertError } = await supabase
-    .from('weekly_records')
-    .insert({ student_id: studentId, week_id: weekId })
-    .select('id')
-    .single();
-  
-  if (insertError) throw insertError;
-  return newRecord.id;
-};
-
 export const updateAttendance = async (studentId, weekId, attendance) => {
   try {
     const { error } = await supabase
       .from('weekly_records')
       .upsert({ 
-        student_id: studentId, 
+        student_id: parseInt(studentId), // Convert back to Integer for DB
         week_id: weekId, 
         attendance: attendance 
       }, { onConflict: 'student_id, week_id' })
@@ -168,7 +148,7 @@ export const updateNotes = async (studentId, weekId, notes) => {
     const { error } = await supabase
       .from('weekly_records')
       .upsert({ 
-        student_id: studentId, 
+        student_id: parseInt(studentId), 
         week_id: weekId, 
         notes: notes 
       }, { onConflict: 'student_id, week_id' });
@@ -183,14 +163,32 @@ export const updateNotes = async (studentId, weekId, notes) => {
 
 export const addPrayerRequest = async (studentId, weekId, content) => {
   try {
-    const recordId = await ensureWeeklyRecord(studentId, weekId);
-    
+    // 1. Get current record to retrieve existing prayer requests
+    const { data: currentRecord, error: fetchError } = await supabase
+      .from('weekly_records')
+      .select('prayer_requests')
+      .eq('student_id', parseInt(studentId))
+      .eq('week_id', weekId)
+      .single();
+
+    let currentRequestsText = '';
+    if (currentRecord && currentRecord.prayer_requests) {
+      currentRequestsText = currentRecord.prayer_requests;
+    }
+
+    // 2. Append new request (with newline if not empty)
+    const newRequestsText = currentRequestsText 
+      ? `${currentRequestsText}\n${content}` 
+      : content;
+
+    // 3. Upsert record with updated text
     const { error } = await supabase
-      .from('prayer_requests')
-      .insert({
-        weekly_record_id: recordId,
-        content: content
-      });
+      .from('weekly_records')
+      .upsert({
+        student_id: parseInt(studentId),
+        week_id: weekId,
+        prayer_requests: newRequestsText
+      }, { onConflict: 'student_id, week_id' });
 
     if (error) throw error;
     return true;
@@ -204,20 +202,21 @@ export const addPrayerRequest = async (studentId, weekId, content) => {
 
 export const addClass = async (gradeId, classItem) => {
   try {
-    const { error } = await supabase
+    // Remove ID generation, let DB handle it
+    const { data, error } = await supabase
       .from('classes')
       .insert({
-        id: classItem.classId,
-        grade_id: gradeId,
+        grade_id: parseInt(gradeId),
         name: classItem.className,
         teacher_name: classItem.teacherName
-      });
+      })
+      .select(); // Select to get the generated ID
     
     if (error) throw error;
-    return true;
+    return data[0]; // Return the created class object with ID
   } catch (error) {
     console.error('Error adding class:', error);
-    return false;
+    return null;
   }
 };
 
@@ -226,7 +225,7 @@ export const removeClass = async (classId) => {
     const { error } = await supabase
       .from('classes')
       .delete()
-      .eq('id', classId);
+      .eq('id', parseInt(classId));
       
     if (error) throw error;
     return true;
@@ -244,7 +243,7 @@ export const updateClass = async (classId, updates) => {
         name: updates.className,
         teacher_name: updates.teacherName
       })
-      .eq('id', classId);
+      .eq('id', parseInt(classId));
 
     if (error) throw error;
     return true;
@@ -256,20 +255,20 @@ export const updateClass = async (classId, updates) => {
 
 export const addStudent = async (classId, student) => {
   try {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('students')
       .insert({
-        id: student.studentId,
-        class_id: classId,
+        class_id: parseInt(classId),
         name: student.name,
         gender: student.gender
-      });
+      })
+      .select();
 
     if (error) throw error;
-    return true;
+    return data[0]; // Return created student with ID
   } catch (error) {
     console.error('Error adding student:', error);
-    return false;
+    return null;
   }
 };
 
@@ -278,7 +277,7 @@ export const removeStudent = async (studentId) => {
     const { error } = await supabase
       .from('students')
       .delete()
-      .eq('id', studentId);
+      .eq('id', parseInt(studentId));
 
     if (error) throw error;
     return true;
@@ -293,7 +292,7 @@ export const updateStudent = async (studentId, name) => {
     const { error } = await supabase
       .from('students')
       .update({ name: name })
-      .eq('id', studentId);
+      .eq('id', parseInt(studentId));
 
     if (error) throw error;
     return true;

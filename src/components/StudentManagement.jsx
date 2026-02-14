@@ -20,11 +20,7 @@ export default function StudentManagement({ data, onDataUpdate }) {
       return
     }
 
-    // Generate ID (Simple logic for now, ideally UUID)
-    const newStudentId = `${selectedClass}-${Date.now()}`
-    
     const newStudent = {
-      studentId: newStudentId,
       name: newStudentName,
       gender: newStudentGender,
       prayerRequests: [],
@@ -32,13 +28,23 @@ export default function StudentManagement({ data, onDataUpdate }) {
       attendance: true
     }
 
-    const success = await addStudent(selectedClass, newStudent)
+    const createdStudent = await addStudent(selectedClass, newStudent)
 
-    if (success) {
+    if (createdStudent) {
       const newData = JSON.parse(JSON.stringify(data))
       const targetGrade = newData.grades.find(g => g.gradeId === selectedGrade)
       const targetClass = targetGrade.classes.find(c => c.classId === selectedClass)
-      targetClass.students.push(newStudent)
+      
+      const newStudentForState = {
+        studentId: String(createdStudent.id),
+        name: createdStudent.name,
+        gender: createdStudent.gender,
+        prayerRequests: [],
+        notes: '',
+        attendance: false
+      }
+      
+      targetClass.students.push(newStudentForState)
       onDataUpdate(newData)
       
       setNewStudentName('')
