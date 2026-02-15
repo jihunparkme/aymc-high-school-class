@@ -1,160 +1,124 @@
-import React, { useState, useEffect } from 'react';
-import { addTeacher, removeTeacher, updateTeacher, loadFromSupabase } from '../utils/dataManager';
+import React, { useState } from 'react';
+import '../styles/ClassManagement.css'; // Reusing styles for consistency
+import { addTeacher, updateTeacher, removeTeacher, loadFromSupabase } from '../utils/dataManager';
 
 const TeacherManagement = ({ data, onDataUpdate }) => {
-  const [selectedGradeId, setSelectedGradeId] = useState(null);
-  const [selectedClassId, setSelectedClassId] = useState(null);
-  const [newTeacherName, setNewTeacherName] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState('add'); // 'add' | 'edit'
+  const [teacherName, setTeacherName] = useState('');
   const [editingTeacherId, setEditingTeacherId] = useState(null);
-  const [editName, setEditName] = useState('');
 
-  // 데이터가 로드되면 첫 번째 학년 자동 선택
-  useEffect(() => {
-    if (data?.grades?.length > 0 && !selectedGradeId) {
-      setSelectedGradeId(data.grades[0].gradeId);
+  const teachers = data?.teachers || [];
+
+  const openAddModal = () => {
+    setModalMode('add');
+    setTeacherName('');
+    setEditingTeacherId(null);
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (teacher) => {
+    setModalMode('edit');
+    setEditingTeacherId(teacher.id);
+    setTeacherName(teacher.name);
+    setIsModalOpen(true);
+  };
+
+  const handleSave = async () => {
+    if (!teacherName.trim()) {
+      alert('선생님 이름을 입력해주세요.');
+      return;
     }
-  }, [data, selectedGradeId]);
 
-  // 학년이 변경되면 첫 번째 반 자동 선택
-  useEffect(() => {
-    if (selectedGradeId) {
-      const grade = data.grades.find(g => g.gradeId === selectedGradeId);
-      if (grade && grade.classes.length > 0) {
-        setSelectedClassId(grade.classes[0].classId);
-      } else {
-        setSelectedClassId(null);
-      }
+    let success = false;
+    if (modalMode === 'add') {
+      const newTeacher = await addTeacher(teacherName);
+      success = !!newTeacher;
+    } else {
+      success = await updateTeacher(editingTeacherId, teacherName);
     }
-  }, [selectedGradeId, data]);
 
-  const handleAddTeacher = async () => {
-    if (!newTeacherName.trim() || !selectedClassId) return;
-    const success = await addTeacher(selectedClassId, newTeacherName);
     if (success) {
-      setNewTeacherName('');
+      setIsModalOpen(false);
       const { data: newData } = await loadFromSupabase();
       if (newData) onDataUpdate(newData);
     } else {
-      alert('교사 추가에 실패했습니다.');
+      alert('저장에 실패했습니다.');
     }
   };
 
-  const handleRemoveTeacher = async (teacherId) => {
-    if (window.confirm('정말 삭제하시겠습니까?')) {
+  const handleDelete = async (teacherId) => {
+    if (window.confirm('정말 이 선생님을 삭제하시겠습니까? 담당하고 있는 반 정보에서 선생님 정보가 해제됩니다.')) {
       const success = await removeTeacher(teacherId);
       if (success) {
         const { data: newData } = await loadFromSupabase();
         if (newData) onDataUpdate(newData);
+      } else {
+        alert('삭제 실패');
       }
-      else alert('삭제 실패');
     }
   };
-
-  const startEditing = (teacher) => {
-    setEditingTeacherId(teacher.teacherId);
-    setEditName(teacher.name);
-  };
-
-  const saveEditing = async () => {
-    if (!editName.trim()) return;
-    const success = await updateTeacher(editingTeacherId, editName);
-    if (success) {
-      setEditingTeacherId(null);
-      const { data: newData } = await loadFromSupabase();
-      if (newData) onDataUpdate(newData);
-    } else {
-      alert('수정 실패');
-    }
-  };
-
-  const selectedGrade = data?.grades?.find(g => g.gradeId === selectedGradeId);
-  const selectedClass = selectedGrade?.classes?.find(c => c.classId === selectedClassId);
 
   return (
-    <div className="teacher-management">
-      <h3>교사 관리</h3>
-      
-      {/* 학년 선택 */}
-      <div className="selector-group" style={{ marginBottom: '1rem' }}>
-        <label style={{ marginRight: '10px', fontWeight: 'bold' }}>학년:</label>
-        {data?.grades?.map(grade => (
-          <button
-            key={grade.gradeId}
-            onClick={() => setSelectedGradeId(grade.gradeId)}
-            style={{
-              padding: '8px 16px',
-              marginRight: '8px',
-              borderRadius: '20px',
-              border: '1px solid #ddd',
-              background: selectedGradeId === grade.gradeId ? '#007AFF' : '#fff',
-              color: selectedGradeId === grade.gradeId ? '#fff' : '#333',
-              cursor: 'pointer'
-            }}
+    <div className="class-management"> {/* Reusing class-management layout */}
+      <div className="grade-card-section">
+        <div className="grade-header">
+          <h3>교사 목록 ({teachers.length}명)</h3>
+          <button 
+            onClick={openAddModal}
+            className="btn-add-class"
           >
-            {grade.gradeName}
+            + 교사 추가
           </button>
-        ))}
+        </div>
+        
+        <div className="class-grid">
+          {teachers.map(teacher => (
+            <div key={teacher.id} className="class-item-card">
+              <h4>{teacher.name}</h4>
+              <div className="card-actions">
+                <button onClick={() => openEditModal(teacher)} className="btn-card-edit">수정</button>
+                <button onClick={() => handleDelete(teacher.id)} className="btn-card-delete">삭제</button>
+              </div>
+            </div>
+          ))}
+          {teachers.length === 0 && <p className="empty-text">등록된 교사가 없습니다.</p>}
+        </div>
       </div>
 
-      {/* 반 선택 */}
-      {selectedGrade && (
-        <div className="selector-group" style={{ marginBottom: '2rem' }}>
-          <label style={{ marginRight: '10px', fontWeight: 'bold' }}>반:</label>
-          {selectedGrade.classes.map(cls => (
-            <button
-              key={cls.classId}
-              onClick={() => setSelectedClassId(cls.classId)}
-              style={{
-                padding: '8px 16px',
-                marginRight: '8px',
-                borderRadius: '20px',
-                border: '1px solid #ddd',
-                background: selectedClassId === cls.classId ? '#34C759' : '#fff',
-                color: selectedClassId === cls.classId ? '#fff' : '#333',
-                cursor: 'pointer'
-              }}
-            >
-              {cls.className}
-            </button>
-          ))}
+      {isModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>{modalMode === 'add' ? '교사 추가' : '교사 정보 수정'}</h3>
+            
+            <div className="form-group">
+              <label>선생님 이름</label>
+              <input 
+                type="text" 
+                value={teacherName} 
+                onChange={(e) => setTeacherName(e.target.value)}
+                placeholder="이름 입력"
+                autoFocus
+              />
+            </div>
+
+            <div className="modal-actions">
+              <button 
+                onClick={() => setIsModalOpen(false)}
+                className="btn-modal-cancel"
+              >
+                취소
+              </button>
+              <button 
+                onClick={handleSave}
+                className="btn-modal-save"
+              >
+                저장
+              </button>
+            </div>
+          </div>
         </div>
       )}
-
-      {/* 교사 목록 및 추가 */}
-      {selectedClass ? (
-        <div className="list-container">
-          <div className="input-group" style={{ display: 'flex', gap: '10px', marginBottom: '1rem' }}>
-            <input
-              type="text"
-              placeholder="교사 이름 입력"
-              value={newTeacherName}
-              onChange={(e) => setNewTeacherName(e.target.value)}
-              style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #ddd' }}
-            />
-            <button onClick={handleAddTeacher} style={{ padding: '10px 20px', borderRadius: '8px', background: '#007AFF', color: 'white', border: 'none', cursor: 'pointer' }}>추가</button>
-          </div>
-
-          <ul style={{ listStyle: 'none', padding: 0 }}>
-            {selectedClass.teachers && selectedClass.teachers.map(teacher => (
-              <li key={teacher.teacherId} style={{ display: 'flex', alignItems: 'center', padding: '12px', borderBottom: '1px solid #eee', background: 'white' }}>
-                {editingTeacherId === teacher.teacherId ? (
-                  <>
-                    <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} style={{ flex: 1, padding: '5px', marginRight: '10px' }} />
-                    <button onClick={saveEditing} style={{ marginRight: '5px', cursor: 'pointer' }}>저장</button>
-                    <button onClick={() => setEditingTeacherId(null)} style={{ cursor: 'pointer' }}>취소</button>
-                  </>
-                ) : (
-                  <>
-                    <span style={{ flex: 1 }}>{teacher.name}</span>
-                    <button onClick={() => startEditing(teacher)} style={{ marginRight: '8px', padding: '4px 8px', cursor: 'pointer', background: '#f0f0f0', border: 'none', borderRadius: '4px' }}>수정</button>
-                    <button onClick={() => handleRemoveTeacher(teacher.teacherId)} style={{ padding: '4px 8px', cursor: 'pointer', background: '#FF3B30', color: 'white', border: 'none', borderRadius: '4px' }}>삭제</button>
-                  </>
-                )}
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : <p>반을 선택해주세요.</p>}
     </div>
   );
 };

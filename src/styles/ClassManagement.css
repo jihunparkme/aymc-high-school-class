@@ -4,108 +4,283 @@
   gap: calc(var(--grid-size) * 4);
 }
 
-.class-management .input-group {
+/* Filter Chips */
+.filter-container {
   display: flex;
-  gap: calc(var(--grid-size) * 2);
-  flex-wrap: wrap;
-  align-items: center;
-  background-color: var(--bg-color);
-  padding: calc(var(--grid-size) * 2);
-  border-radius: var(--radius-md);
-}
-
-.class-management .input-group input {
-  flex: 1;
-  min-width: 200px;
-  background-color: var(--card-bg);
-  border: 1px solid transparent;
-  box-shadow: var(--shadow-sm);
-}
-
-.class-management .input-group input:focus {
-  border-color: var(--accent-color);
-  box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.15);
-}
-
-.class-management .input-group button {
-  white-space: nowrap;
-}
-
-/* Table Styles - Reusing same logic as StudentManagement for consistency */
-.classes-table {
+  gap: 8px;
   overflow-x: auto;
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.filter-chip {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-color);
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.filter-chip:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.filter-chip.active {
+  background-color: var(--accent-color);
+  color: white;
+  border-color: var(--accent-color);
+  box-shadow: 0 2px 8px rgba(0, 113, 227, 0.3);
+}
+
+/* Grade Section Card */
+.grade-card-section {
+  background-color: var(--card-bg);
   border-radius: var(--radius-md);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
   border: 1px solid var(--border-color);
 }
 
-.classes-table table {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 600px;
-}
-
-.classes-table th {
-  background-color: var(--bg-color);
-  color: var(--text-secondary);
-  font-weight: 600;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding: 16px;
-  text-align: left;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.classes-table td {
-  padding: 16px;
-  border-bottom: 1px solid var(--border-color);
-  color: var(--text-primary);
-  font-size: 0.95rem;
-  vertical-align: middle;
-}
-
-.classes-table tr:last-child td {
-  border-bottom: none;
-}
-
-.classes-table tr:hover td {
-  background-color: rgba(0, 0, 0, 0.02);
-}
-
-.classes-table input {
-  width: 100%;
-  padding: 8px 12px;
-  font-size: 0.95rem;
-  background-color: var(--bg-color);
-}
-
-.classes-table .actions {
+.grade-header {
   display: flex;
-  gap: 8px;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
 }
 
-.classes-table .btn-edit,
-.classes-table .btn-delete,
-.classes-table .btn-save {
+.grade-header h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.btn-add-class {
   padding: 6px 12px;
-  font-size: 1.1rem;
+  background-color: rgba(0, 113, 227, 0.1);
+  color: var(--accent-color);
   border-radius: 8px;
-  background-color: transparent;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.btn-add-class:hover {
+  background-color: rgba(0, 113, 227, 0.2);
+}
+
+/* Class Grid */
+.class-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.class-item-card {
+  background-color: var(--bg-color);
+  border-radius: 12px;
+  padding: 16px;
   border: 1px solid transparent;
   transition: all 0.2s ease;
 }
 
-.classes-table .btn-edit:hover {
-  background-color: rgba(0, 113, 227, 0.1);
-  color: var(--accent-color);
+.class-item-card:hover {
+  background-color: white;
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
-.classes-table .btn-delete:hover {
+.class-item-card h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 8px 0;
+}
+
+.class-item-card p {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin: 0 0 16px 0;
+}
+
+.card-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-card-edit, .btn-card-delete {
+  flex: 1;
+  padding: 6px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-card-edit {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: var(--text-primary);
+}
+
+.btn-card-edit:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.btn-card-delete {
   background-color: rgba(255, 59, 48, 0.1);
   color: var(--danger-color);
 }
 
-.classes-table .btn-save:hover {
-  background-color: rgba(52, 199, 89, 0.1);
-  color: var(--success-color);
+.btn-card-delete:hover {
+  background-color: rgba(255, 59, 48, 0.2);
+}
+
+.empty-text {
+  color: var(--text-tertiary);
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 20px;
+  grid-column: 1 / -1;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-content {
+  background-color: var(--card-bg);
+  border-radius: 20px;
+  padding: 24px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: var(--shadow-lg);
+  animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes modalPop {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.modal-content h3 {
+  margin: 0 0 24px 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.form-group {
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.form-group input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-color);
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  background-color: white;
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.1);
+}
+
+.suggestions-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: white;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  margin-top: 4px;
+  max-height: 150px;
+  overflow-y: auto;
+  list-style: none;
+  padding: 0;
+  z-index: 10;
+  box-shadow: var(--shadow-md);
+}
+
+.suggestions-list li {
+  padding: 10px 16px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  border-bottom: 1px solid var(--bg-color);
+}
+
+.suggestions-list li:last-child {
+  border-bottom: none;
+}
+
+.suggestions-list li:hover {
+  background-color: var(--bg-color);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.btn-modal-cancel {
+  flex: 1;
+  padding: 12px;
+  border-radius: 12px;
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.btn-modal-save {
+  flex: 1;
+  padding: 12px;
+  border-radius: 12px;
+  background-color: var(--accent-color);
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 113, 227, 0.3);
+}
+
+.btn-modal-save:hover {
+  background-color: var(--accent-hover);
+  transform: translateY(-1px);
 }

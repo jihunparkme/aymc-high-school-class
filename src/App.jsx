@@ -20,12 +20,10 @@ function App() {
     const loadData = async () => {
       try {
         const loaded = await loadFromSupabase()
-        setData(loaded.data || initializeData())
-        setDailyData(loaded.dailyData || initializeDailyData())
+        setData(loaded.data)
+        setDailyData(loaded.dailyData)
       } catch (error) {
         console.error('Failed to load data:', error)
-        setData(initializeData())
-        setDailyData(initializeDailyData())
       } finally {
         setIsLoading(false)
       }
