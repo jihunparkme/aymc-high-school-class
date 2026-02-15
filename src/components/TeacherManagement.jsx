@@ -7,8 +7,28 @@ const TeacherManagement = ({ data, onDataUpdate }) => {
   const [modalMode, setModalMode] = useState('add'); // 'add' | 'edit'
   const [teacherName, setTeacherName] = useState('');
   const [editingTeacherId, setEditingTeacherId] = useState(null);
+  const [filterGradeId, setFilterGradeId] = useState('all');
 
   const teachers = data?.teachers || [];
+
+  // Filter teachers by grade
+  const filteredTeachers = teachers.filter(teacher => {
+    if (filterGradeId === 'all') return true;
+
+    if (filterGradeId === 'unassigned') {
+      // Check if teacher is NOT assigned to ANY class in ANY grade
+      const isAssigned = data.grades.some(grade => 
+        grade.classes.some(cls => cls.teacherId === teacher.id)
+      );
+      return !isAssigned;
+    }
+
+    // Check if teacher is assigned to any class in the selected grade
+    const grade = data.grades.find(g => g.gradeId === filterGradeId);
+    if (!grade) return false;
+    
+    return grade.classes.some(cls => cls.teacherId === teacher.id);
+  });
 
   const openAddModal = () => {
     setModalMode('add');
@@ -61,9 +81,33 @@ const TeacherManagement = ({ data, onDataUpdate }) => {
 
   return (
     <div className="class-management"> {/* Reusing class-management layout */}
+      <div className="filter-container">
+        <button
+          onClick={() => setFilterGradeId('all')}
+          className={`filter-chip ${filterGradeId === 'all' ? 'active' : ''}`}
+        >
+          전체
+        </button>
+        {data?.grades?.map(grade => (
+          <button
+            key={grade.gradeId}
+            onClick={() => setFilterGradeId(grade.gradeId)}
+            className={`filter-chip ${filterGradeId === grade.gradeId ? 'active' : ''}`}
+          >
+            {grade.gradeName}
+          </button>
+        ))}
+        <button
+          onClick={() => setFilterGradeId('unassigned')}
+          className={`filter-chip ${filterGradeId === 'unassigned' ? 'active' : ''}`}
+        >
+          미지정
+        </button>
+      </div>
+
       <div className="grade-card-section">
         <div className="grade-header">
-          <h3>교사 목록 ({teachers.length}명)</h3>
+          <h3>교사 목록 ({filteredTeachers.length}명)</h3>
           <button 
             onClick={openAddModal}
             className="btn-add-class"
@@ -73,16 +117,16 @@ const TeacherManagement = ({ data, onDataUpdate }) => {
         </div>
         
         <div className="class-grid">
-          {teachers.map(teacher => (
+          {filteredTeachers.map(teacher => (
             <div key={teacher.id} className="class-item-card">
               <h4>{teacher.name}</h4>
               <div className="card-actions">
-                <button onClick={() => openEditModal(teacher)} className="btn-card-edit">수정</button>
-                <button onClick={() => handleDelete(teacher.id)} className="btn-card-delete">삭제</button>
+                <button onClick={() => openEditModal(teacher)} className="btn-card-edit">✏️</button>
+                <button onClick={() => handleDelete(teacher.id)} className="btn-card-delete">🗑️</button>
               </div>
             </div>
           ))}
-          {teachers.length === 0 && <p className="empty-text">등록된 교사가 없습니다.</p>}
+          {filteredTeachers.length === 0 && <p className="empty-text">등록된 교사가 없습니다.</p>}
         </div>
       </div>
 
