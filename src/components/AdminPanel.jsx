@@ -4,6 +4,7 @@ import PrayerView from './PrayerView'
 import NotesView from './NotesView'
 import AttendanceManagement from './AttendanceManagement' // AttendanceManagement import
 import ClassManagement from './ClassManagement'
+import TeacherManagement from './TeacherManagement'
 import StudentManagement from './StudentManagement'
 import DataManagement from './DataManagement'
 
@@ -56,6 +57,12 @@ export default function AdminPanel({ data, setData, dailyData, setDailyData, onB
           📚 반 관리
         </button>
         <button
+          className={`tab-btn ${activeTab === 'teacher' ? 'active' : ''}`}
+          onClick={() => setActiveTab('teacher')}
+        >
+          👨‍🏫 교사 관리
+        </button>
+        <button
           className={`tab-btn ${activeTab === 'student' ? 'active' : ''}`}
           onClick={() => setActiveTab('student')}
         >
@@ -75,6 +82,9 @@ export default function AdminPanel({ data, setData, dailyData, setDailyData, onB
         {activeTab === 'notes' && <NotesView data={data} dailyData={dailyData} />}
         {activeTab === 'class' && (
           <ClassManagement data={data} onDataUpdate={handleDataUpdate} />
+        )}
+        {activeTab === 'teacher' && (
+          <TeacherManagement data={data} onDataUpdate={handleDataUpdate} />
         )}
         {activeTab === 'student' && (
           <StudentManagement data={data} onDataUpdate={handleDataUpdate} />

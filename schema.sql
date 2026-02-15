@@ -1,20 +1,31 @@
 -- 1. Grades Table
+-- --- RESET (DROP TABLES) ---
+-- Drop tables in reverse order of dependency or use CASCADE to handle foreign keys automatically.
+DROP TABLE IF EXISTS weekly_records CASCADE;
+DROP TABLE IF EXISTS teachers CASCADE;
+DROP TABLE IF EXISTS students CASCADE;
+DROP TABLE IF EXISTS classes CASCADE;
+DROP TABLE IF EXISTS grades CASCADE;
+
+-- --- TABLE CREATION ---
+
+-- 1. Grades Table (학년)
 CREATE TABLE grades (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 2. Classes Table
+-- 2. Classes Table (반)
 CREATE TABLE classes (
     id SERIAL PRIMARY KEY,
     grade_id INTEGER REFERENCES grades(id) ON DELETE CASCADE,
     name VARCHAR(100) NOT NULL,
-    teacher_name VARCHAR(100),
+    teacher_id INTEGER, -- Circular reference: Added via ALTER TABLE later
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 3. Students Table
+-- 3. Students Table (학생)
 CREATE TABLE students (
     id SERIAL PRIMARY KEY,
     class_id INTEGER REFERENCES classes(id) ON DELETE CASCADE,
@@ -23,8 +34,15 @@ CREATE TABLE students (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 4. Weekly Records Table (Attendance, Notes, Prayer Requests)
--- Stores data per student per week
+-- 4. Teachers Table (교사)
+CREATE TABLE teachers (
+    id SERIAL PRIMARY KEY,
+    class_id INTEGER REFERENCES classes(id) ON DELETE CASCADE,
+    name VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 5. Weekly Records Table (주간 기록: 출석, 특이사항, 기도제목)
 CREATE TABLE weekly_records (
     id BIGSERIAL PRIMARY KEY,
     student_id INTEGER REFERENCES students(id) ON DELETE CASCADE,
@@ -37,34 +55,47 @@ CREATE TABLE weekly_records (
     UNIQUE(student_id, week_id) -- Ensure one record per student per week
 );
 
--- RLS (Row Level Security) Policies (Optional but recommended for Supabase)
--- For simplicity, we'll enable read/write for everyone for now.
--- In production, you should restrict this based on authentication.
+-- --- CONSTRAINTS & INDEXES ---
+
+-- Add Foreign Key for classes.teacher_id (Circular Reference Resolution)
+ALTER TABLE classes ADD CONSTRAINT fk_classes_teacher FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE SET NULL;
+
+-- --- RLS (ROW LEVEL SECURITY) ---
+-- Enabling RLS for all tables.
+-- Currently configured for public access (development mode).
 
 ALTER TABLE grades ENABLE ROW LEVEL SECURITY;
 ALTER TABLE classes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE students ENABLE ROW LEVEL SECURITY;
+ALTER TABLE teachers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE weekly_records ENABLE ROW LEVEL SECURITY;
 
--- Create policies to allow public access (Modify as needed for auth)
+-- Read Policies
 CREATE POLICY "Allow public read access on grades" ON grades FOR SELECT USING (true);
 CREATE POLICY "Allow public read access on classes" ON classes FOR SELECT USING (true);
 CREATE POLICY "Allow public read access on students" ON students FOR SELECT USING (true);
+CREATE POLICY "Allow public read access on teachers" ON teachers FOR SELECT USING (true);
 CREATE POLICY "Allow public read access on weekly_records" ON weekly_records FOR SELECT USING (true);
 
+-- Insert Policies
 CREATE POLICY "Allow public insert access on grades" ON grades FOR INSERT WITH CHECK (true);
 CREATE POLICY "Allow public insert access on classes" ON classes FOR INSERT WITH CHECK (true);
 CREATE POLICY "Allow public insert access on students" ON students FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public insert access on teachers" ON teachers FOR INSERT WITH CHECK (true);
 CREATE POLICY "Allow public insert access on weekly_records" ON weekly_records FOR INSERT WITH CHECK (true);
 
+-- Update Policies
 CREATE POLICY "Allow public update access on grades" ON grades FOR UPDATE USING (true);
 CREATE POLICY "Allow public update access on classes" ON classes FOR UPDATE USING (true);
 CREATE POLICY "Allow public update access on students" ON students FOR UPDATE USING (true);
+CREATE POLICY "Allow public update access on teachers" ON teachers FOR UPDATE USING (true);
 CREATE POLICY "Allow public update access on weekly_records" ON weekly_records FOR UPDATE USING (true);
 
+-- Delete Policies
 CREATE POLICY "Allow public delete access on grades" ON grades FOR DELETE USING (true);
 CREATE POLICY "Allow public delete access on classes" ON classes FOR DELETE USING (true);
 CREATE POLICY "Allow public delete access on students" ON students FOR DELETE USING (true);
+CREATE POLICY "Allow public delete access on teachers" ON teachers FOR DELETE USING (true);
 CREATE POLICY "Allow public delete access on weekly_records" ON weekly_records FOR DELETE USING (true);
 
 -- --- SAMPLE DATA INSERTION ---
@@ -76,25 +107,20 @@ INSERT INTO grades (name) VALUES
 ('3학년');
 
 -- 2. Insert Classes
--- Assuming IDs 1, 2, 3 for grades
-INSERT INTO classes (grade_id, name, teacher_name) VALUES
-(1, '1반', '김이선생님'),
-(1, '2반', '이선생님'),
-(1, '3반', '박선생님'),
-(1, '4반', '누구선생'),
-(2, '1반', '최선생님'),
-(2, '2반', '한선생님'),
-(2, '3반', '권선생님'),
-(3, '1반', '조선생님'),
-(3, '2반', '유선생님'),
-(3, '3반', '이선생님');
+-- Note: teacher_id is initially NULL
+INSERT INTO classes (grade_id, name) VALUES
+(1, '1반'),
+(1, '2반'),
+(1, '3반'),
+(1, '4반'),
+(2, '1반'),
+(2, '2반'),
+(2, '3반'),
+(3, '1반'),
+(3, '2반'),
+(3, '3반');
 
 -- 3. Insert Students
--- Assuming IDs for classes based on insertion order
--- Grade 1 (Classes 1-4) -> IDs 1, 2, 3, 4
--- Grade 2 (Classes 1-3) -> IDs 5, 6, 7
--- Grade 3 (Classes 1-3) -> IDs 8, 9, 10
-
 INSERT INTO students (class_id, name, gender) VALUES
 -- 1학년 1반 (Class ID 1)
 (1, '이준호', '남'),
@@ -197,16 +223,32 @@ INSERT INTO students (class_id, name, gender) VALUES
 (10, '강은지', '여'),
 (10, '정혜은', '여');
 
--- 4. Insert Weekly Records (Sample Data)
--- Need to find student IDs. Assuming sequential IDs starting from 1.
--- 1-1-1 이준호 -> ID 1
--- 1-1-6 오준석 -> ID 6
--- 1-1-4 정성은 -> ID 4
--- 2-1-1 박준영 -> ID 31 (1학년 1,2,3반 10명씩 + 4반 1명 = 31번째부터 2학년 시작)
--- 2-1-2 정서은 -> ID 32
--- 3-1-1 이현준 -> ID 61 (2학년 1,2,3반 10명씩 = 30명 + 1학년 31명 = 61번째부터 3학년 시작)
--- 1-1-3 박미현 -> ID 3
+-- 4. Insert Teachers
+INSERT INTO teachers (class_id, name) VALUES
+(1, '김이선생님'),
+(2, '이선생님'),
+(3, '박선생님'),
+(4, '누구선생'),
+(5, '최선생님'),
+(6, '한선생님'),
+(7, '권선생님'),
+(8, '조선생님'),
+(9, '유선생님'),
+(10, '이선생님');
 
+-- 5. Update Classes with Teacher IDs (Linking back to teachers)
+UPDATE classes SET teacher_id = 1 WHERE id = 1;
+UPDATE classes SET teacher_id = 2 WHERE id = 2;
+UPDATE classes SET teacher_id = 3 WHERE id = 3;
+UPDATE classes SET teacher_id = 4 WHERE id = 4;
+UPDATE classes SET teacher_id = 5 WHERE id = 5;
+UPDATE classes SET teacher_id = 6 WHERE id = 6;
+UPDATE classes SET teacher_id = 7 WHERE id = 7;
+UPDATE classes SET teacher_id = 8 WHERE id = 8;
+UPDATE classes SET teacher_id = 9 WHERE id = 9;
+UPDATE classes SET teacher_id = 10 WHERE id = 10;
+
+-- 6. Insert Weekly Records (Sample Data)
 INSERT INTO weekly_records (student_id, week_id, attendance, notes, prayer_requests) VALUES
 (1, '2026년 02월 2주차', true, '', 'ㅇㅇㅇㅇ'),
 (6, '2026년 02월 2주차', true, 'ㅇㅇ', 'ㅎㅎ'),

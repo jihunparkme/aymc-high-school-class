@@ -64,6 +64,13 @@ export const loadFromSupabase = async () => {
 
     if (studentsError) throw studentsError;
 
+    const { data: teachers, error: teachersError } = await supabase
+      .from('teachers')
+      .select('*')
+      .order('id');
+
+    if (teachersError) throw teachersError;
+
     // 2. Fetch weekly records (prayer_requests is now TEXT)
     const { data: weeklyRecords, error: recordsError } = await supabase
       .from('weekly_records')
@@ -82,7 +89,14 @@ export const loadFromSupabase = async () => {
           .map(c => ({
             classId: String(c.id), // Convert to String
             className: c.name,
-            teacherName: c.teacher_name,
+            teacherName: teachers.find(t => t.id === c.teacher_id)?.name || null, // Map ID to Name
+            teacherId: c.teacher_id ? String(c.teacher_id) : null,
+            teachers: teachers
+              ? teachers.filter(t => t.class_id === c.id).map(t => ({
+                  teacherId: String(t.id),
+                  name: t.name
+                }))
+              : [],
             students: students
               .filter(s => s.class_id === c.id)
               .map(s => ({
@@ -139,6 +153,56 @@ export const updateAttendance = async (studentId, weekId, attendance) => {
     return true;
   } catch (error) {
     console.error('Error updating attendance:', error);
+    return false;
+  }
+};
+
+// --- Teacher Actions ---
+
+export const addTeacher = async (classId, name) => {
+  try {
+    const { data, error } = await supabase
+      .from('teachers')
+      .insert({
+        class_id: parseInt(classId),
+        name: name
+      })
+      .select();
+
+    if (error) throw error;
+    return data[0];
+  } catch (error) {
+    console.error('Error adding teacher:', error);
+    return null;
+  }
+};
+
+export const removeTeacher = async (teacherId) => {
+  try {
+    const { error } = await supabase
+      .from('teachers')
+      .delete()
+      .eq('id', parseInt(teacherId));
+
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error removing teacher:', error);
+    return false;
+  }
+};
+
+export const updateTeacher = async (teacherId, name) => {
+  try {
+    const { error } = await supabase
+      .from('teachers')
+      .update({ name: name })
+      .eq('id', parseInt(teacherId));
+
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error updating teacher:', error);
     return false;
   }
 };
@@ -208,7 +272,7 @@ export const addClass = async (gradeId, classItem) => {
       .insert({
         grade_id: parseInt(gradeId),
         name: classItem.className,
-        teacher_name: classItem.teacherName
+        teacher_id: classItem.teacherId ? parseInt(classItem.teacherId) : null
       })
       .select(); // Select to get the generated ID
     
@@ -241,7 +305,7 @@ export const updateClass = async (classId, updates) => {
       .from('classes')
       .update({
         name: updates.className,
-        teacher_name: updates.teacherName
+        teacher_id: updates.teacherId ? parseInt(updates.teacherId) : null
       })
       .eq('id', parseInt(classId));
 
@@ -299,5 +363,23 @@ export const updateStudent = async (studentId, name) => {
   } catch (error) {
     console.error('Error updating student:', error);
     return false;
+  }
+};
+
+// --- Search Actions ---
+
+export const searchTeachers = async (keyword) => {
+  try {
+    const { data, error } = await supabase
+      .from('teachers')
+      .select('id, name')
+      .ilike('name', `%${keyword}%`)
+      .limit(10);
+
+    if (error) throw error;
+    return data; // Return objects {id, name}
+  } catch (error) {
+    console.error('Error searching teachers:', error);
+    return [];
   }
 };
