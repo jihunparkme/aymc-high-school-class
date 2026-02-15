@@ -38,99 +38,81 @@ export const getTodayWeek = () => {
   return new Date()
 }
 
+// --- Data Transformation Helpers ---
+
+const transformSchoolData = (grades, classes, students, teachers) => {
+  return {
+    date: new Date().toISOString().split('T')[0],
+    teachers: teachers.map(t => ({ id: t.id, name: t.name })),
+    grades: grades.map(grade => ({
+      gradeId: String(grade.id),
+      gradeName: grade.name,
+      classes: classes
+        .filter(c => c.grade_id === grade.id)
+        .map(c => ({
+          classId: String(c.id),
+          className: c.name,
+          teacherId: c.teacher_id,
+          teacherName: c.teachers ? c.teachers.name : '미정',
+          students: students
+            .filter(s => s.class_id === c.id)
+            .map(s => ({
+              studentId: String(s.id),
+              name: s.name,
+              gender: s.gender
+            }))
+        }))
+    }))
+  };
+};
+
+const transformDailyData = (weeklyRecords) => {
+  const dailyData = {};
+  weeklyRecords.forEach(record => {
+    const studentIdStr = String(record.student_id);
+    if (!dailyData[studentIdStr]) {
+      dailyData[studentIdStr] = {};
+    }
+    
+    const prayerRequestsArray = record.prayer_requests 
+      ? record.prayer_requests.split('\n').filter(p => p.trim() !== '') 
+      : [];
+
+    dailyData[studentIdStr][record.week_id] = {
+      attendance: record.attendance,
+      notes: record.notes || '',
+      prayerRequests: prayerRequestsArray
+    };
+  });
+  return dailyData;
+};
+
 // --- Data Loading (Supabase) ---
 
 export const loadFromSupabase = async () => {
   try {
-    // 1. Fetch basic school structure
-    const { data: grades, error: gradesError } = await supabase
-      .from('grades')
-      .select('*')
-      .order('id');
-    
+    const [
+      { data: grades, error: gradesError },
+      { data: teachers, error: teachersError },
+      { data: classes, error: classesError },
+      { data: students, error: studentsError },
+      { data: weeklyRecords, error: recordsError }
+    ] = await Promise.all([
+      supabase.from('grades').select('*').order('id'),
+      supabase.from('teachers').select('*').order('name'),
+      supabase.from('classes').select('*, teachers!teacher_id(id, name)').order('id'),
+      supabase.from('students').select('*').order('id'),
+      supabase.from('weekly_records').select('*')
+    ]);
+
     if (gradesError) throw gradesError;
-
-    // Fetch teachers
-    const { data: teachers, error: teachersError } = await supabase
-      .from('teachers')
-      .select('*')
-      .order('name');
-
     if (teachersError) throw teachersError;
-
-    // Fetch classes with teacher info
-    // Explicitly specify the foreign key relationship using !teacher_id
-    const { data: classes, error: classesError } = await supabase
-      .from('classes')
-      .select(`
-        *,
-        teachers!teacher_id (
-          id,
-          name
-        )
-      `)
-      .order('id');
-
     if (classesError) throw classesError;
-
-    const { data: students, error: studentsError } = await supabase
-      .from('students')
-      .select('*')
-      .order('id');
-
     if (studentsError) throw studentsError;
-
-    // 2. Fetch weekly records (prayer_requests is now TEXT)
-    const { data: weeklyRecords, error: recordsError } = await supabase
-      .from('weekly_records')
-      .select('*');
-
     if (recordsError) throw recordsError;
 
-    // 3. Transform to App's Data Structure
-    const schoolData = {
-      date: new Date().toISOString().split('T')[0],
-      teachers: teachers.map(t => ({ id: t.id, name: t.name })), // Add teachers list
-      grades: grades.map(grade => ({
-        gradeId: String(grade.id),
-        gradeName: grade.name,
-        classes: classes
-          .filter(c => c.grade_id === grade.id)
-          .map(c => ({
-            classId: String(c.id),
-            className: c.name,
-            teacherId: c.teacher_id,
-            teacherName: c.teachers ? c.teachers.name : '미정', // Join result
-            students: students
-              .filter(s => s.class_id === c.id)
-              .map(s => ({
-                studentId: String(s.id),
-                name: s.name,
-                gender: s.gender
-              }))
-          }))
-      }))
-    };
-
-    // 4. Transform to DailyData Structure
-    const dailyData = {};
-    weeklyRecords.forEach(record => {
-      const studentIdStr = String(record.student_id);
-      if (!dailyData[studentIdStr]) {
-        dailyData[studentIdStr] = {};
-      }
-      
-      // Convert TEXT prayer_requests to Array
-      const prayerRequestsArray = record.prayer_requests 
-        ? record.prayer_requests.split('\n').filter(p => p.trim() !== '') 
-        : [];
-
-      dailyData[studentIdStr][record.week_id] = {
-        attendance: record.attendance,
-        notes: record.notes || '',
-        prayerRequests: prayerRequestsArray
-      };
-    });
+    const schoolData = transformSchoolData(grades, classes, students, teachers);
+    const dailyData = transformDailyData(weeklyRecords);
 
     return { data: schoolData, dailyData };
 
@@ -181,8 +163,7 @@ export const updateNotes = async (studentId, weekId, notes) => {
 
 export const addPrayerRequest = async (studentId, weekId, content) => {
   try {
-    // 1. Get current record to retrieve existing prayer requests
-    const { data: currentRecord, error: fetchError } = await supabase
+    const { data: currentRecord } = await supabase
       .from('weekly_records')
       .select('prayer_requests')
       .eq('student_id', parseInt(studentId))
@@ -194,12 +175,10 @@ export const addPrayerRequest = async (studentId, weekId, content) => {
       currentRequestsText = currentRecord.prayer_requests;
     }
 
-    // 2. Append new request (with newline if not empty)
     const newRequestsText = currentRequestsText 
       ? `${currentRequestsText}\n${content}` 
       : content;
 
-    // 3. Upsert record with updated text
     const { error } = await supabase
       .from('weekly_records')
       .upsert({
@@ -282,7 +261,6 @@ export const addClass = async (gradeId, classItem) => {
     
     if (error) throw error;
     
-    // Return formatted object
     const created = data[0];
     return {
       ...created,
@@ -339,7 +317,7 @@ export const addStudent = async (classId, student) => {
       .select();
 
     if (error) throw error;
-    return data[0]; // Return created student with ID
+    return data[0];
   } catch (error) {
     console.error('Error adding student:', error);
     return null;
