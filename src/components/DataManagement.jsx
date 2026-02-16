@@ -6,7 +6,7 @@ export default function DataManagement({ data, dailyData }) {
   const today = new Date()
   const [selectedYear, setSelectedYear] = useState(today.getFullYear())
   const [selectedMonth, setSelectedMonth] = useState(today.getMonth() + 1)
-  const [selectedGradeId, setSelectedGradeId] = useState(data.grades[0]?.gradeId || '')
+  const [selectedGradeId, setSelectedGradeId] = useState('all') // Default to 'all'
 
   // 연도 옵션 (현재 연도 기준 앞뒤 2년)
   const yearOptions = Array.from({ length: 5 }, (_, i) => today.getFullYear() - 2 + i)
@@ -17,9 +17,14 @@ export default function DataManagement({ data, dailyData }) {
   const yearlyStats = useMemo(() => {
     if (!selectedGradeId) return []
     
+    // Filter grades based on selection
+    const targetGrades = selectedGradeId === 'all' 
+      ? data.grades 
+      : data.grades.filter(g => g.gradeId === selectedGradeId)
+
+    if (targetGrades.length === 0) return []
+
     const stats = []
-    const grade = data.grades.find(g => g.gradeId === selectedGradeId)
-    if (!grade) return []
 
     for (let month = 1; month <= 12; month++) {
       // 해당 월의 주차 목록
@@ -40,12 +45,14 @@ export default function DataManagement({ data, dailyData }) {
         let weekTotal = 0
         let weekPresent = 0
         
-        grade.classes.forEach(classItem => {
-          weekTotal += classItem.students.length
-          classItem.students.forEach(student => {
-            if (dailyData[student.studentId]?.[weekId]?.attendance) {
-              weekPresent++
-            }
+        targetGrades.forEach(grade => {
+          grade.classes.forEach(classItem => {
+            weekTotal += classItem.students.length
+            classItem.students.forEach(student => {
+              if (dailyData[student.studentId]?.[weekId]?.attendance) {
+                weekPresent++
+              }
+            })
           })
         })
 
@@ -82,19 +89,24 @@ export default function DataManagement({ data, dailyData }) {
   const statistics = useMemo(() => {
     if (!selectedGradeId) return []
 
-    const grade = data.grades.find(g => g.gradeId === selectedGradeId)
-    if (!grade) return []
+    const targetGrades = selectedGradeId === 'all' 
+      ? data.grades 
+      : data.grades.filter(g => g.gradeId === selectedGradeId)
+
+    if (targetGrades.length === 0) return []
 
     return weeksInMonth.map(weekId => {
       let totalStudents = 0
       let presentCount = 0
 
-      grade.classes.forEach(classItem => {
-        totalStudents += classItem.students.length
-        classItem.students.forEach(student => {
-          if (dailyData[student.studentId]?.[weekId]?.attendance) {
-            presentCount++
-          }
+      targetGrades.forEach(grade => {
+        grade.classes.forEach(classItem => {
+          totalStudents += classItem.students.length
+          classItem.students.forEach(student => {
+            if (dailyData[student.studentId]?.[weekId]?.attendance) {
+              presentCount++
+            }
+          })
         })
       })
 
@@ -225,6 +237,7 @@ export default function DataManagement({ data, dailyData }) {
             onChange={(e) => setSelectedGradeId(e.target.value)}
             className="filter-select"
           >
+            <option value="all">전체 학년</option>
             {data.grades.map(grade => (
               <option key={grade.gradeId} value={grade.gradeId}>{grade.gradeName}</option>
             ))}
