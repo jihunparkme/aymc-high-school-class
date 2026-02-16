@@ -4,6 +4,7 @@ DROP TABLE IF EXISTS students CASCADE;
 DROP TABLE IF EXISTS classes CASCADE;
 DROP TABLE IF EXISTS grades CASCADE;
 DROP TABLE IF EXISTS class_teachers CASCADE;
+DROP TABLE IF EXISTS teacher_weekly_records CASCADE;
 
 -- Enable UUID extension (optional, but good practice)
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -19,6 +20,7 @@ CREATE TABLE grades (
 CREATE TABLE teachers (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
+    gender VARCHAR(10) CHECK (gender IN ('남', '여')), -- Added gender
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -46,7 +48,7 @@ CREATE TABLE students (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 6. Weekly Records Table
+-- 6. Weekly Records Table (Students)
 CREATE TABLE weekly_records (
     id BIGSERIAL PRIMARY KEY,
     student_id INTEGER REFERENCES students(id) ON DELETE CASCADE,
@@ -59,6 +61,19 @@ CREATE TABLE weekly_records (
     UNIQUE(student_id, week_id)
 );
 
+-- 7. Teacher Weekly Records Table (New)
+CREATE TABLE teacher_weekly_records (
+    id BIGSERIAL PRIMARY KEY,
+    teacher_id INTEGER REFERENCES teachers(id) ON DELETE CASCADE,
+    week_id VARCHAR(50) NOT NULL, -- Format: 'YYYY년 MM월 N주차'
+    attendance BOOLEAN DEFAULT false,
+    notes TEXT,
+    prayer_requests TEXT, -- Stored as newline-separated text
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(teacher_id, week_id)
+);
+
 -- RLS Policies
 ALTER TABLE grades ENABLE ROW LEVEL SECURITY;
 ALTER TABLE teachers ENABLE ROW LEVEL SECURITY;
@@ -66,6 +81,7 @@ ALTER TABLE classes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE class_teachers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE students ENABLE ROW LEVEL SECURITY;
 ALTER TABLE weekly_records ENABLE ROW LEVEL SECURITY;
+ALTER TABLE teacher_weekly_records ENABLE ROW LEVEL SECURITY;
 
 -- Public access policies
 CREATE POLICY "Allow public read access on grades" ON grades FOR SELECT USING (true);
@@ -74,6 +90,7 @@ CREATE POLICY "Allow public read access on classes" ON classes FOR SELECT USING 
 CREATE POLICY "Allow public read access on class_teachers" ON class_teachers FOR SELECT USING (true);
 CREATE POLICY "Allow public read access on students" ON students FOR SELECT USING (true);
 CREATE POLICY "Allow public read access on weekly_records" ON weekly_records FOR SELECT USING (true);
+CREATE POLICY "Allow public read access on teacher_weekly_records" ON teacher_weekly_records FOR SELECT USING (true);
 
 CREATE POLICY "Allow public insert access on grades" ON grades FOR INSERT WITH CHECK (true);
 CREATE POLICY "Allow public insert access on teachers" ON teachers FOR INSERT WITH CHECK (true);
@@ -81,6 +98,7 @@ CREATE POLICY "Allow public insert access on classes" ON classes FOR INSERT WITH
 CREATE POLICY "Allow public insert access on class_teachers" ON class_teachers FOR INSERT WITH CHECK (true);
 CREATE POLICY "Allow public insert access on students" ON students FOR INSERT WITH CHECK (true);
 CREATE POLICY "Allow public insert access on weekly_records" ON weekly_records FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public insert access on teacher_weekly_records" ON teacher_weekly_records FOR INSERT WITH CHECK (true);
 
 CREATE POLICY "Allow public update access on grades" ON grades FOR UPDATE USING (true);
 CREATE POLICY "Allow public update access on teachers" ON teachers FOR UPDATE USING (true);
@@ -88,6 +106,7 @@ CREATE POLICY "Allow public update access on classes" ON classes FOR UPDATE USIN
 CREATE POLICY "Allow public update access on class_teachers" ON class_teachers FOR UPDATE USING (true);
 CREATE POLICY "Allow public update access on students" ON students FOR UPDATE USING (true);
 CREATE POLICY "Allow public update access on weekly_records" ON weekly_records FOR UPDATE USING (true);
+CREATE POLICY "Allow public update access on teacher_weekly_records" ON teacher_weekly_records FOR UPDATE USING (true);
 
 CREATE POLICY "Allow public delete access on grades" ON grades FOR DELETE USING (true);
 CREATE POLICY "Allow public delete access on teachers" ON teachers FOR DELETE USING (true);
@@ -95,18 +114,19 @@ CREATE POLICY "Allow public delete access on classes" ON classes FOR DELETE USIN
 CREATE POLICY "Allow public delete access on class_teachers" ON class_teachers FOR DELETE USING (true);
 CREATE POLICY "Allow public delete access on students" ON students FOR DELETE USING (true);
 CREATE POLICY "Allow public delete access on weekly_records" ON weekly_records FOR DELETE USING (true);
+CREATE POLICY "Allow public delete access on teacher_weekly_records" ON teacher_weekly_records FOR DELETE USING (true);
 
 -- --- SAMPLE DATA INSERTION ---
 
 -- 1. Insert Grades
 INSERT INTO grades (name) VALUES ('1학년'), ('2학년'), ('3학년');
 
--- 2. Insert Teachers
-INSERT INTO teachers (name) VALUES
-('김이선생님'), ('이선생님'), ('박선생님'), ('누구선생'),
-('최선생님'), ('한선생님'), ('권선생님'),
-('조선생님'), ('유선생님'), ('강선생님'), ('윤선생님'),
-('장선생님'), ('임선생님'), ('오선생님');
+-- 2. Insert Teachers (with gender)
+INSERT INTO teachers (name, gender) VALUES
+('김이선생님', '남'), ('이선생님', '여'), ('박선생님', '남'), ('누구선생', '여'),
+('최선생님', '남'), ('한선생님', '여'), ('권선생님', '남'),
+('조선생님', '여'), ('유선생님', '남'), ('강선생님', '여'), ('윤선생님', '남'),
+('장선생님', '여'), ('임선생님', '남'), ('오선생님', '여');
 
 -- 3. Insert Classes
 INSERT INTO classes (grade_id, name) VALUES
@@ -200,3 +220,8 @@ INSERT INTO weekly_records (student_id, week_id, attendance) VALUES
 (10, '2026년 02월 2주차', true),
 (11, '2026년 02월 2주차', false),
 (12, '2026년 02월 2주차', true);
+
+-- 7. Insert Teacher Weekly Records (Sample)
+INSERT INTO teacher_weekly_records (teacher_id, week_id, attendance, notes, prayer_requests) VALUES
+(1, '2026년 02월 2주차', true, '교사 회의 참석', '반 아이들 건강'),
+(2, '2026년 02월 2주차', true, '', '가족 평안');

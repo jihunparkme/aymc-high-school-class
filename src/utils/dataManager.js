@@ -50,6 +50,7 @@ const transformSchoolData = (grades, classes, students, teachers) => {
       return { 
         id: t.id, 
         name: t.name,
+        gender: t.gender, // Added gender
         assignedClasses: assignedClasses.map(c => c.name).join(', ')
       };
     }),
@@ -57,7 +58,7 @@ const transformSchoolData = (grades, classes, students, teachers) => {
       gradeId: String(grade.id),
       gradeName: grade.name,
       classes: classes
-        .filter(c => Number(c.grade_id) === Number(grade.id)) // Ensure number comparison
+        .filter(c => Number(c.grade_id) === Number(grade.id))
         .map(c => {
           const classTeachers = c.class_teachers 
             ? c.class_teachers.map(ct => ct.teachers).filter(t => t) 
@@ -70,7 +71,7 @@ const transformSchoolData = (grades, classes, students, teachers) => {
             teacherNames: classTeachers.map(t => t.name).join(', '),
             teacherName: classTeachers.map(t => t.name).join(', ') || '미정',
             students: students
-              .filter(s => Number(s.class_id) === Number(c.id)) // Ensure number comparison
+              .filter(s => Number(s.class_id) === Number(c.id))
               .map(s => ({
                 studentId: String(s.id),
                 name: s.name,
@@ -103,6 +104,27 @@ const transformDailyData = (weeklyRecords) => {
   return dailyData;
 };
 
+const transformTeacherDailyData = (teacherWeeklyRecords) => {
+  const dailyData = {};
+  teacherWeeklyRecords.forEach(record => {
+    const teacherIdStr = String(record.teacher_id);
+    if (!dailyData[teacherIdStr]) {
+      dailyData[teacherIdStr] = {};
+    }
+    
+    const prayerRequestsArray = record.prayer_requests 
+      ? record.prayer_requests.split('\n').filter(p => p.trim() !== '') 
+      : [];
+
+    dailyData[teacherIdStr][record.week_id] = {
+      attendance: record.attendance,
+      notes: record.notes || '',
+      prayerRequests: prayerRequestsArray
+    };
+  });
+  return dailyData;
+};
+
 // --- Data Loading (Supabase) ---
 
 export const loadFromSupabase = async () => {
@@ -112,7 +134,8 @@ export const loadFromSupabase = async () => {
       { data: teachers, error: teachersError },
       { data: classes, error: classesError },
       { data: students, error: studentsError },
-      { data: weeklyRecords, error: recordsError }
+      { data: weeklyRecords, error: recordsError },
+      { data: teacherWeeklyRecords, error: teacherRecordsError }
     ] = await Promise.all([
       supabase.from('grades').select('*').order('id'),
       supabase.from('teachers').select(`
@@ -133,7 +156,8 @@ export const loadFromSupabase = async () => {
         )
       `).order('id'),
       supabase.from('students').select('*').order('id'),
-      supabase.from('weekly_records').select('*')
+      supabase.from('weekly_records').select('*'),
+      supabase.from('teacher_weekly_records').select('*')
     ]);
 
     if (gradesError) throw gradesError;
@@ -141,15 +165,17 @@ export const loadFromSupabase = async () => {
     if (classesError) throw classesError;
     if (studentsError) throw studentsError;
     if (recordsError) throw recordsError;
+    if (teacherRecordsError) throw teacherRecordsError;
 
     const schoolData = transformSchoolData(grades, classes, students, teachers);
     const dailyData = transformDailyData(weeklyRecords);
+    const teacherDailyData = transformTeacherDailyData(teacherWeeklyRecords);
 
-    return { data: schoolData, dailyData };
+    return { data: schoolData, dailyData, teacherDailyData };
 
   } catch (error) {
     console.error('Failed to load data from Supabase:', error);
-    return { data: null, dailyData: {} };
+    return { data: null, dailyData: {}, teacherDailyData: {} };
   }
 };
 
@@ -222,6 +248,79 @@ export const addPrayerRequest = async (studentId, weekId, content) => {
     return true;
   } catch (error) {
     console.error('Error adding prayer request:', error);
+    return false;
+  }
+};
+
+// --- Teacher Data Saving ---
+
+export const updateTeacherAttendance = async (teacherId, weekId, attendance) => {
+  try {
+    const { error } = await supabase
+      .from('teacher_weekly_records')
+      .upsert({ 
+        teacher_id: parseInt(teacherId), 
+        week_id: weekId, 
+        attendance: attendance 
+      }, { onConflict: 'teacher_id, week_id' })
+      .select();
+
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error updating teacher attendance:', error);
+    return false;
+  }
+};
+
+export const updateTeacherNotes = async (teacherId, weekId, notes) => {
+  try {
+    const { error } = await supabase
+      .from('teacher_weekly_records')
+      .upsert({ 
+        teacher_id: parseInt(teacherId), 
+        week_id: weekId, 
+        notes: notes 
+      }, { onConflict: 'teacher_id, week_id' });
+
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error updating teacher notes:', error);
+    return false;
+  }
+};
+
+export const addTeacherPrayerRequest = async (teacherId, weekId, content) => {
+  try {
+    const { data: currentRecord } = await supabase
+      .from('teacher_weekly_records')
+      .select('prayer_requests')
+      .eq('teacher_id', parseInt(teacherId))
+      .eq('week_id', weekId)
+      .single();
+
+    let currentRequestsText = '';
+    if (currentRecord && currentRecord.prayer_requests) {
+      currentRequestsText = currentRecord.prayer_requests;
+    }
+
+    const newRequestsText = currentRequestsText 
+      ? `${currentRequestsText}\n${content}` 
+      : content;
+
+    const { error } = await supabase
+      .from('teacher_weekly_records')
+      .upsert({
+        teacher_id: parseInt(teacherId),
+        week_id: weekId,
+        prayer_requests: newRequestsText
+      }, { onConflict: 'teacher_id, week_id' });
+
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error adding teacher prayer request:', error);
     return false;
   }
 };

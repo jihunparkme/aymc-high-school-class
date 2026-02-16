@@ -1,6 +1,6 @@
 import '../styles/GradeSelector.css'
 
-export default function GradeSelector({ data, onSelectGrade, onAdminClick }) {
+export default function GradeSelector({ data, onSelectGrade, onAdminClick, onTeacherClick }) {
   const getGradeIcon = (gradeId) => {
     switch(gradeId) {
       case '1': return '🌱';
@@ -60,6 +60,25 @@ export default function GradeSelector({ data, onSelectGrade, onAdminClick }) {
                 </div>
               </button>
             ))}
+            
+            {/* Teacher Button */}
+            <button
+              className="grade-card"
+              onClick={onTeacherClick}
+            >
+              <div className="grade-icon-wrapper">
+                👨‍🏫
+              </div>
+              <div className="grade-info">
+                <span className="grade-name">교사</span>
+                <span className="grade-desc">교사 출결 및 관리</span>
+              </div>
+              <div className="grade-arrow">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M9 18L15 12L9 6" stroke="#C7C7CC" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+            </button>
           </div>
         </div>
       </div>

@@ -3,6 +3,7 @@ import './App.css'
 import GradeSelector from './components/GradeSelector'
 import ClassSelector from './components/ClassSelector'
 import StudentList from './components/StudentList'
+import TeacherList from './components/TeacherList' // Import TeacherList
 import AdminPanel from './components/AdminPanel'
 import ScrollToTopButton from './components/ScrollToTopButton'
 import { loadFromSupabase } from './utils/dataManager'
@@ -11,6 +12,7 @@ function App() {
   const [appState, setAppState] = useState('gradeSelect')
   const [data, setData] = useState(null)
   const [dailyData, setDailyData] = useState({})
+  const [teacherDailyData, setTeacherDailyData] = useState({}) // Add teacherDailyData state
   const [selectedGrade, setSelectedGrade] = useState(null)
   const [selectedClass, setSelectedClass] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -22,6 +24,7 @@ function App() {
         const loaded = await loadFromSupabase()
         setData(loaded.data)
         setDailyData(loaded.dailyData)
+        setTeacherDailyData(loaded.teacherDailyData || {}) // Set teacherDailyData
       } catch (error) {
         console.error('Failed to load data:', error)
       } finally {
@@ -84,6 +87,7 @@ function App() {
             navigateTo('classSelect', grade, null)
           }}
           onAdminClick={() => navigateTo('admin', null, null)}
+          onTeacherClick={() => navigateTo('teacherList', null, null)} // Add onTeacherClick
         />
       )}
 
@@ -107,6 +111,16 @@ function App() {
           setDailyData={setDailyData}
           selectedGrade={selectedGrade}
           selectedClass={selectedClass}
+          onBack={goBack}
+          onHome={goHome}
+        />
+      )}
+
+      {appState === 'teacherList' && ( // Add TeacherList route
+        <TeacherList
+          data={data}
+          teacherDailyData={teacherDailyData}
+          setTeacherDailyData={setTeacherDailyData}
           onBack={goBack}
           onHome={goHome}
         />
