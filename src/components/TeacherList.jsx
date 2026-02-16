@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import '../styles/StudentList.css' // Reusing StudentList styles
-import StudentCard from './StudentCard' // Reusing StudentCard (can be renamed to PersonCard later)
+import '../styles/StudentList.css'
+import '../styles/ClassManagement.css' // Import ClassManagement styles for filter chips
+import StudentCard from './StudentCard'
 import InputModal from './InputModal'
 import { getNextWeek, getPreviousWeek, getTodayWeek, getWeekId, updateTeacherAttendance, updateTeacherNotes, addTeacherPrayerRequest } from '../utils/dataManager'
 
@@ -15,11 +16,31 @@ export default function TeacherList({
   const [selectedTeacher, setSelectedTeacher] = useState(null)
   const [modalType, setModalType] = useState(null)
   const [filterType, setFilterType] = useState('all')
+  const [filterGradeId, setFilterGradeId] = useState('all')
 
   const teachers = data.teachers || []
   const weekId = getWeekId(currentDate)
 
   const filteredTeachers = teachers.filter(t => {
+    // 1. Grade Filter
+    let gradeMatch = true;
+    if (filterGradeId !== 'all') {
+      if (filterGradeId === 'unassigned') {
+        const isAssigned = data.grades.some(grade => 
+          grade.classes.some(cls => cls.teacherIds && cls.teacherIds.includes(t.id))
+        );
+        gradeMatch = !isAssigned;
+      } else {
+        const grade = data.grades.find(g => g.gradeId === filterGradeId);
+        if (!grade) gradeMatch = false;
+        else {
+          gradeMatch = grade.classes.some(cls => cls.teacherIds && cls.teacherIds.includes(t.id));
+        }
+      }
+    }
+    if (!gradeMatch) return false;
+
+    // 2. Attendance Filter
     if (filterType === 'all') return true
     const weekData = teacherDailyData[t.id]?.[weekId]
     if (filterType === 'attendance') return weekData?.attendance === true
@@ -130,18 +151,43 @@ export default function TeacherList({
         </div>
       </div>
 
+      {/* Grade Filter */}
+      <div className="filter-container" style={{ justifyContent: 'center', marginBottom: '16px' }}>
+        <button
+          onClick={() => setFilterGradeId('all')}
+          className={`filter-chip ${filterGradeId === 'all' ? 'active' : ''}`}
+        >
+          전체
+        </button>
+        {data?.grades?.map(grade => (
+          <button
+            key={grade.gradeId}
+            onClick={() => setFilterGradeId(grade.gradeId)}
+            className={`filter-chip ${filterGradeId === grade.gradeId ? 'active' : ''}`}
+          >
+            {grade.gradeName}
+          </button>
+        ))}
+        <button
+          onClick={() => setFilterGradeId('unassigned')}
+          className={`filter-chip ${filterGradeId === 'unassigned' ? 'active' : ''}`}
+        >
+          미지정
+        </button>
+      </div>
+
       <div className="filter-buttons">
         <button
           className={`filter-btn ${filterType === 'all' ? 'active' : ''}`}
           onClick={() => setFilterType('all')}
         >
-          전체 ({teachers.length}명)
+          전체 ({filteredTeachers.length}명)
         </button>
         <button
           className={`filter-btn ${filterType === 'attendance' ? 'active' : ''}`}
           onClick={() => setFilterType('attendance')}
         >
-          출석 ({teachers.filter(t => {
+          출석 ({filteredTeachers.filter(t => {
             const weekData = teacherDailyData[t.id]?.[weekId]
             return weekData?.attendance
           }).length}명)
@@ -150,7 +196,7 @@ export default function TeacherList({
           className={`filter-btn ${filterType === 'absent' ? 'active' : ''}`}
           onClick={() => setFilterType('absent')}
         >
-          부재 ({teachers.filter(t => {
+          부재 ({filteredTeachers.filter(t => {
             const weekData = teacherDailyData[t.id]?.[weekId]
             return !weekData?.attendance
           }).length}명)
@@ -167,7 +213,7 @@ export default function TeacherList({
           return (
             <StudentCard
               key={teacher.id}
-              student={teacher} // Reusing StudentCard prop name
+              student={teacher}
               dayData={dayData}
               onPrayerClick={() => handleOpenModal(teacher, 'prayer')}
               onNotesClick={() => handleOpenModal(teacher, 'notes')}
@@ -179,7 +225,7 @@ export default function TeacherList({
 
       {modalType && selectedTeacher && (
         <InputModal
-          student={selectedTeacher} // Reusing InputModal prop name
+          student={selectedTeacher}
           modalType={modalType}
           currentContent={selectedTeacher && modalType === 'prayer' 
             ? (teacherDailyData[selectedTeacher.id]?.[weekId]?.prayerRequests || [])
