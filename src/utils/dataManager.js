@@ -43,25 +43,41 @@ export const getTodayWeek = () => {
 const transformSchoolData = (grades, classes, students, teachers) => {
   return {
     date: new Date().toISOString().split('T')[0],
-    teachers: teachers.map(t => ({ id: t.id, name: t.name })),
+    teachers: teachers.map(t => {
+      const assignedClasses = t.class_teachers 
+        ? t.class_teachers.map(ct => ct.classes).filter(c => c) 
+        : [];
+      return { 
+        id: t.id, 
+        name: t.name,
+        assignedClasses: assignedClasses.map(c => c.name).join(', ')
+      };
+    }),
     grades: grades.map(grade => ({
       gradeId: String(grade.id),
       gradeName: grade.name,
       classes: classes
-        .filter(c => c.grade_id === grade.id)
-        .map(c => ({
-          classId: String(c.id),
-          className: c.name,
-          teacherId: c.teacher_id,
-          teacherName: c.teachers ? c.teachers.name : '미정',
-          students: students
-            .filter(s => s.class_id === c.id)
-            .map(s => ({
-              studentId: String(s.id),
-              name: s.name,
-              gender: s.gender
-            }))
-        }))
+        .filter(c => Number(c.grade_id) === Number(grade.id)) // Ensure number comparison
+        .map(c => {
+          const classTeachers = c.class_teachers 
+            ? c.class_teachers.map(ct => ct.teachers).filter(t => t) 
+            : [];
+          
+          return {
+            classId: String(c.id),
+            className: c.name,
+            teacherIds: classTeachers.map(t => t.id),
+            teacherNames: classTeachers.map(t => t.name).join(', '),
+            teacherName: classTeachers.map(t => t.name).join(', ') || '미정',
+            students: students
+              .filter(s => Number(s.class_id) === Number(c.id)) // Ensure number comparison
+              .map(s => ({
+                studentId: String(s.id),
+                name: s.name,
+                gender: s.gender
+              }))
+          };
+        })
     }))
   };
 };
@@ -99,8 +115,23 @@ export const loadFromSupabase = async () => {
       { data: weeklyRecords, error: recordsError }
     ] = await Promise.all([
       supabase.from('grades').select('*').order('id'),
-      supabase.from('teachers').select('*').order('name'),
-      supabase.from('classes').select('*, teachers!teacher_id(id, name)').order('id'),
+      supabase.from('teachers').select(`
+        *,
+        class_teachers (
+          classes (
+            name
+          )
+        )
+      `).order('name'),
+      supabase.from('classes').select(`
+        *,
+        class_teachers (
+          teachers (
+            id,
+            name
+          )
+        )
+      `).order('id'),
       supabase.from('students').select('*').order('id'),
       supabase.from('weekly_records').select('*')
     ]);
@@ -197,7 +228,6 @@ export const addPrayerRequest = async (studentId, weekId, content) => {
 
 // --- Admin Actions (Direct DB Manipulation) ---
 
-// Teacher Management
 export const addTeacher = async (name) => {
   try {
     const { data, error } = await supabase
@@ -245,26 +275,34 @@ export const removeTeacher = async (id) => {
 
 export const addClass = async (gradeId, classItem) => {
   try {
-    const { data, error } = await supabase
+    const { data: classData, error: classError } = await supabase
       .from('classes')
       .insert({
         grade_id: parseInt(gradeId),
-        name: classItem.className,
-        teacher_id: classItem.teacherId ? parseInt(classItem.teacherId) : null
+        name: classItem.className
       })
-      .select(`
-        *,
-        teachers!teacher_id (
-          name
-        )
-      `);
+      .select();
     
-    if (error) throw error;
+    if (classError) throw classError;
+    const newClassId = classData[0].id;
+
+    if (classItem.teacherIds && classItem.teacherIds.length > 0) {
+      const teacherRelations = classItem.teacherIds.map(teacherId => ({
+        class_id: newClassId,
+        teacher_id: parseInt(teacherId)
+      }));
+
+      const { error: relationError } = await supabase
+        .from('class_teachers')
+        .insert(teacherRelations);
+      
+      if (relationError) throw relationError;
+    }
     
-    const created = data[0];
     return {
-      ...created,
-      teacher_name: created.teachers ? created.teachers.name : null
+      id: newClassId,
+      name: classItem.className,
+      teacher_name: classItem.teacherNames
     };
   } catch (error) {
     console.error('Error adding class:', error);
@@ -289,15 +327,37 @@ export const removeClass = async (classId) => {
 
 export const updateClass = async (classId, updates) => {
   try {
-    const { error } = await supabase
+    const { error: classError } = await supabase
       .from('classes')
       .update({
-        name: updates.className,
-        teacher_id: updates.teacherId ? parseInt(updates.teacherId) : null
+        name: updates.className
       })
       .eq('id', parseInt(classId));
 
-    if (error) throw error;
+    if (classError) throw classError;
+
+    if (updates.teacherIds) {
+      const { error: deleteError } = await supabase
+        .from('class_teachers')
+        .delete()
+        .eq('class_id', parseInt(classId));
+      
+      if (deleteError) throw deleteError;
+
+      if (updates.teacherIds.length > 0) {
+        const teacherRelations = updates.teacherIds.map(teacherId => ({
+          class_id: parseInt(classId),
+          teacher_id: parseInt(teacherId)
+        }));
+
+        const { error: insertError } = await supabase
+          .from('class_teachers')
+          .insert(teacherRelations);
+        
+        if (insertError) throw insertError;
+      }
+    }
+
     return true;
   } catch (error) {
     console.error('Error updating class:', error);
@@ -354,7 +414,6 @@ export const updateStudent = async (studentId, name) => {
   }
 };
 
-// --- Teacher Search ---
 export const searchTeachers = async (query) => {
   try {
     const { data, error } = await supabase

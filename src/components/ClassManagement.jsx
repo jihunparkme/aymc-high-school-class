@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import '../styles/ClassManagement.css';
 import { addClass, removeClass, updateClass, loadFromSupabase, searchTeachers } from '../utils/dataManager';
 
 const ClassManagement = ({ data, onDataUpdate }) => {
@@ -9,16 +10,14 @@ const ClassManagement = ({ data, onDataUpdate }) => {
   const [filterGradeId, setFilterGradeId] = useState('all');
 
   const [className, setClassName] = useState('');
-  const [teacherName, setTeacherName] = useState('');
-  const [selectedTeacherId, setSelectedTeacherId] = useState(null);
+  const [teacherSearchTerm, setTeacherSearchTerm] = useState('');
+  const [selectedTeachers, setSelectedTeachers] = useState([]); // Array of {id, name}
   
-  // 교사 검색 관련 상태
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const searchTimeout = useRef(null);
   const wrapperRef = useRef(null);
 
-  // 외부 클릭 시 추천 목록 닫기
   useEffect(() => {
     function handleClickOutside(event) {
       if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
@@ -33,8 +32,8 @@ const ClassManagement = ({ data, onDataUpdate }) => {
     setModalMode('add');
     setTargetGradeId(gradeId);
     setClassName('');
-    setTeacherName('');
-    setSelectedTeacherId(null);
+    setTeacherSearchTerm('');
+    setSelectedTeachers([]);
     setSuggestions([]);
     setIsModalOpen(true);
   };
@@ -43,35 +42,50 @@ const ClassManagement = ({ data, onDataUpdate }) => {
     setModalMode('edit');
     setEditingClassId(cls.classId);
     setClassName(cls.className);
-    setTeacherName(cls.teacherName || '');
-    setSelectedTeacherId(cls.teacherId || null);
+    setTeacherSearchTerm('');
+    
+    if (cls.teacherIds && cls.teacherIds.length > 0) {
+      const names = cls.teacherNames.split(', ');
+      const teachers = cls.teacherIds.map((id, index) => ({
+        id: id,
+        name: names[index] || 'Unknown'
+      }));
+      setSelectedTeachers(teachers);
+    } else {
+      setSelectedTeachers([]);
+    }
+    
     setSuggestions([]);
     setIsModalOpen(true);
   };
 
-  const handleTeacherNameChange = (e) => {
+  const handleTeacherSearchChange = (e) => {
     const value = e.target.value;
-    setTeacherName(value);
-    setSelectedTeacherId(null); // 이름이 변경되면 기존 ID 선택 해제 (새로 검색 필요)
+    setTeacherSearchTerm(value);
 
     if (searchTimeout.current) clearTimeout(searchTimeout.current);
 
     if (value.trim().length > 0) {
       searchTimeout.current = setTimeout(async () => {
         const results = await searchTeachers(value);
-        setSuggestions(results);
+        const filteredResults = results.filter(t => !selectedTeachers.some(st => st.id === t.id));
+        setSuggestions(filteredResults);
         setShowSuggestions(true);
-      }, 300); // 디바운싱 적용
+      }, 300);
     } else {
       setSuggestions([]);
       setShowSuggestions(false);
     }
   };
 
-  const selectTeacher = (teacher) => {
-    setTeacherName(teacher.name);
-    setSelectedTeacherId(teacher.id);
+  const addTeacher = (teacher) => {
+    setSelectedTeachers([...selectedTeachers, teacher]);
+    setTeacherSearchTerm('');
     setShowSuggestions(false);
+  };
+
+  const removeTeacher = (teacherId) => {
+    setSelectedTeachers(selectedTeachers.filter(t => t.id !== teacherId));
   };
 
   const handleSave = async () => {
@@ -80,28 +94,29 @@ const ClassManagement = ({ data, onDataUpdate }) => {
       return;
     }
 
-    let finalTeacherId = selectedTeacherId;
-
-    // 선생님 이름이 입력되었는데 ID가 없는 경우 (직접 입력 등) 검증
-    if (teacherName.trim() && !finalTeacherId) {
-      const results = await searchTeachers(teacherName.trim());
-      const match = results.find(t => t.name === teacherName.trim());
-      
-      if (match) {
-        finalTeacherId = match.id;
-      } else {
-        alert('등록되지 않은 선생님입니다. 목록에서 선택하거나 교사 관리에서 먼저 등록해주세요.');
-        return;
+    // Check for duplicate class name in the same grade
+    if (modalMode === 'add') {
+      const targetGrade = data.grades.find(g => g.gradeId === targetGradeId);
+      if (targetGrade) {
+        const isDuplicate = targetGrade.classes.some(c => c.className === className.trim());
+        if (isDuplicate) {
+          alert(`이미 '${className.trim()}'이(가) 존재합니다. 다른 이름을 입력해주세요.`);
+          return;
+        }
       }
-    } else if (!teacherName.trim()) {
-      finalTeacherId = null;
     }
+
+    const classData = { 
+      className: className.trim(), 
+      teacherIds: selectedTeachers.map(t => t.id),
+      teacherNames: selectedTeachers.map(t => t.name).join(', ')
+    };
 
     let success = false;
     if (modalMode === 'add') {
-      success = await addClass(targetGradeId, { className, teacherId: finalTeacherId });
+      success = await addClass(targetGradeId, classData);
     } else {
-      success = await updateClass(editingClassId, { className, teacherId: finalTeacherId });
+      success = await updateClass(editingClassId, classData);
     }
 
     if (success) {
@@ -131,18 +146,10 @@ const ClassManagement = ({ data, onDataUpdate }) => {
 
   return (
     <div className="class-management">
-      <div style={{ marginBottom: '1.5rem', display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
+      <div className="filter-container">
         <button
           onClick={() => setFilterGradeId('all')}
-          style={{
-            padding: '8px 16px',
-            borderRadius: '20px',
-            border: '1px solid #ddd',
-            background: filterGradeId === 'all' ? '#333' : '#fff',
-            color: filterGradeId === 'all' ? '#fff' : '#333',
-            cursor: 'pointer',
-            whiteSpace: 'nowrap'
-          }}
+          className={`filter-chip ${filterGradeId === 'all' ? 'active' : ''}`}
         >
           전체
         </button>
@@ -150,15 +157,7 @@ const ClassManagement = ({ data, onDataUpdate }) => {
           <button
             key={grade.gradeId}
             onClick={() => setFilterGradeId(grade.gradeId)}
-            style={{
-              padding: '8px 16px',
-              borderRadius: '20px',
-              border: '1px solid #ddd',
-              background: filterGradeId === grade.gradeId ? '#007AFF' : '#fff',
-              color: filterGradeId === grade.gradeId ? '#fff' : '#333',
-              cursor: 'pointer',
-              whiteSpace: 'nowrap'
-            }}
+            className={`filter-chip ${filterGradeId === grade.gradeId ? 'active' : ''}`}
           >
             {grade.gradeName}
           </button>
@@ -166,89 +165,71 @@ const ClassManagement = ({ data, onDataUpdate }) => {
       </div>
 
       {filteredGrades?.map(grade => (
-        <div key={grade.gradeId} style={{ marginBottom: '2rem', padding: '1.5rem', background: '#fff', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <h3 style={{ margin: 0 }}>{grade.gradeName}</h3>
+        <div key={grade.gradeId} className="grade-card-section">
+          <div className="grade-header">
+            <h3>{grade.gradeName}</h3>
             <button 
               onClick={() => openAddModal(grade.gradeId)}
-              style={{ padding: '6px 12px', background: '#007AFF', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+              className="btn-add-class"
             >
               + 반 추가
             </button>
           </div>
           
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
+          <div className="class-grid">
             {grade.classes.map(cls => (
-              <div key={cls.classId} style={{ border: '1px solid #eee', borderRadius: '8px', padding: '1rem', position: 'relative' }}>
-                <h4 style={{ margin: '0 0 0.5rem 0' }}>{cls.className}</h4>
-                <p style={{ margin: '0 0 1rem 0', color: '#666', fontSize: '0.9rem' }}>
-                  담임: {cls.teacherName || '미정'}
-                </p>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <button onClick={() => openEditModal(cls)} style={{ flex: 1, padding: '4px', background: '#f0f0f0', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>수정</button>
-                  <button onClick={() => handleDelete(cls.classId)} style={{ flex: 1, padding: '4px', background: '#FF3B30', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>삭제</button>
+              <div key={cls.classId} className="class-item-card">
+                <h4>{cls.className}</h4>
+                <p>담임: {cls.teacherName || '미정'}</p>
+                <div className="card-actions">
+                  <button onClick={() => openEditModal(cls)} className="btn-card-edit">✏️</button>
+                  <button onClick={() => handleDelete(cls.classId)} className="btn-card-delete">🗑️</button>
                 </div>
               </div>
             ))}
-            {grade.classes.length === 0 && <p style={{ color: '#999', fontSize: '0.9rem' }}>등록된 반이 없습니다.</p>}
+            {grade.classes.length === 0 && <p className="empty-text">등록된 반이 없습니다.</p>}
           </div>
         </div>
       ))}
 
       {isModalOpen && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
-        }}>
-          <div style={{ background: 'white', padding: '2rem', borderRadius: '12px', width: '90%', maxWidth: '400px' }}>
+        <div className="modal-overlay">
+          <div className="modal-content">
             <h3>{modalMode === 'add' ? '반 추가' : '반 정보 수정'}</h3>
             
-            <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>반 이름</label>
+            <div className="form-group">
+              <label>반 이름</label>
               <input 
                 type="text" 
                 value={className} 
                 onChange={(e) => setClassName(e.target.value)}
                 placeholder="예: 1반"
-                style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #ddd' }}
               />
             </div>
 
-            <div style={{ marginBottom: '1.5rem', position: 'relative' }} ref={wrapperRef}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>담임 선생님</label>
+            <div className="form-group" ref={wrapperRef}>
+              <label>담임 선생님</label>
+              <div className="selected-teachers">
+                {selectedTeachers.map(teacher => (
+                  <span key={teacher.id} className="teacher-tag">
+                    {teacher.name}
+                    <button onClick={() => removeTeacher(teacher.id)} className="btn-remove-teacher">×</button>
+                  </span>
+                ))}
+              </div>
               <input 
                 type="text" 
-                value={teacherName} 
-                onChange={handleTeacherNameChange}
-                onFocus={() => teacherName && setShowSuggestions(true)}
+                value={teacherSearchTerm} 
+                onChange={handleTeacherSearchChange}
+                onFocus={() => teacherSearchTerm && setShowSuggestions(true)}
                 placeholder="이름을 입력하여 검색"
-                style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #ddd' }}
               />
-              {/* 검색 제안 목록 */}
               {showSuggestions && suggestions.length > 0 && (
-                <ul style={{
-                  position: 'absolute',
-                  top: '100%',
-                  left: 0,
-                  right: 0,
-                  background: 'white',
-                  border: '1px solid #ddd',
-                  borderRadius: '0 0 6px 6px',
-                  marginTop: '-1px',
-                  maxHeight: '150px',
-                  overflowY: 'auto',
-                  listStyle: 'none',
-                  padding: 0,
-                  zIndex: 10,
-                  boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                }}>
+                <ul className="suggestions-list">
                   {suggestions.map((teacher) => (
                     <li 
                       key={teacher.id}
-                      onClick={() => selectTeacher(teacher)}
-                      style={{ padding: '8px 12px', cursor: 'pointer', borderBottom: '1px solid #eee' }}
-                      onMouseEnter={(e) => e.target.style.background = '#f9f9f9'}
-                      onMouseLeave={(e) => e.target.style.background = 'white'}
+                      onClick={() => addTeacher(teacher)}
                     >
                       {teacher.name}
                     </li>
@@ -257,16 +238,16 @@ const ClassManagement = ({ data, onDataUpdate }) => {
               )}
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+            <div className="modal-actions">
               <button 
                 onClick={() => setIsModalOpen(false)}
-                style={{ padding: '8px 16px', background: '#ddd', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+                className="btn-modal-cancel"
               >
                 취소
               </button>
               <button 
                 onClick={handleSave}
-                style={{ padding: '8px 16px', background: '#007AFF', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+                className="btn-modal-save"
               >
                 저장
               </button>
