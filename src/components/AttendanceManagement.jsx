@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { getNextWeek, getPreviousWeek, getTodayWeek, getWeekId } from '../utils/dataManager'
 import '../styles/AttendanceManagement.css'
 
-export default function AttendanceManagement({ data, dailyData }) {
+export default function AttendanceManagement({ data, dailyData, teacherDailyData }) {
   const [currentWeekDate, setCurrentWeekDate] = useState(new Date())
-  const [selectedGradeId, setSelectedGradeId] = useState('all') // 'all' 또는 특정 gradeId
+  const [selectedGradeId, setSelectedGradeId] = useState('all') // 'all', 'teachers', 또는 특정 gradeId
 
   const weekId = getWeekId(currentWeekDate)
 
@@ -22,7 +22,11 @@ export default function AttendanceManagement({ data, dailyData }) {
 
   const filteredGrades = selectedGradeId === 'all' 
     ? data.grades 
-    : data.grades.filter(grade => grade.gradeId === selectedGradeId)
+    : selectedGradeId === 'teachers'
+      ? [] // 교사만 선택 시 학년 데이터는 빈 배열
+      : data.grades.filter(grade => grade.gradeId === selectedGradeId)
+
+  const showTeachers = selectedGradeId === 'all' || selectedGradeId === 'teachers'
 
   return (
     <div className="attendance-management">
@@ -44,12 +48,13 @@ export default function AttendanceManagement({ data, dailyData }) {
           value={selectedGradeId} 
           onChange={(e) => setSelectedGradeId(e.target.value)}
         >
-          <option value="all">전체 학년</option>
+          <option value="all">전체 (학생 + 교사)</option>
           {data.grades.map(grade => (
             <option key={grade.gradeId} value={grade.gradeId}>
               {grade.gradeName}
             </option>
           ))}
+          <option value="teachers">교사 전체</option>
         </select>
       </div>
 
@@ -79,6 +84,36 @@ export default function AttendanceManagement({ data, dailyData }) {
           })}
         </div>
       ))}
+
+      {showTeachers && data.teachers && (
+        <div className="grade-section">
+          <h3>교사</h3>
+          <div className="class-section">
+            {(() => {
+              const teachers = data.teachers
+              const total = teachers.length
+              const present = teachers.filter(t => teacherDailyData?.[t.id]?.[weekId]?.attendance).length
+              const absent = total - present
+              
+              return (
+                <>
+                  <h4>전체 교사<br/>출석: {present}명 / 결석: {absent}명</h4>
+                  <div className="student-attendance-list">
+                    {teachers.map(teacher => {
+                      const isPresent = teacherDailyData?.[teacher.id]?.[weekId]?.attendance
+                      return (
+                        <div key={teacher.id} className={`student-tag ${isPresent ? 'present' : 'absent'}`}>
+                          {teacher.name}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </>
+              )
+            })()}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -225,7 +225,7 @@ export const addPrayerRequest = async (studentId, weekId, content) => {
       .select('prayer_requests')
       .eq('student_id', parseInt(studentId))
       .eq('week_id', weekId)
-      .single();
+      .maybeSingle(); // Changed from .single() to .maybeSingle()
 
     let currentRequestsText = '';
     if (currentRecord && currentRecord.prayer_requests) {
@@ -298,7 +298,7 @@ export const addTeacherPrayerRequest = async (teacherId, weekId, content) => {
       .select('prayer_requests')
       .eq('teacher_id', parseInt(teacherId))
       .eq('week_id', weekId)
-      .single();
+      .maybeSingle(); // Changed from .single() to .maybeSingle()
 
     let currentRequestsText = '';
     if (currentRecord && currentRecord.prayer_requests) {

@@ -2,13 +2,22 @@ import { useState } from 'react'
 import '../styles/AdminPanel.css'
 import PrayerView from './PrayerView'
 import NotesView from './NotesView'
-import AttendanceManagement from './AttendanceManagement' // AttendanceManagement import
+import AttendanceManagement from './AttendanceManagement'
 import ClassManagement from './ClassManagement'
 import TeacherManagement from './TeacherManagement'
 import StudentManagement from './StudentManagement'
 import DataManagement from './DataManagement'
 
-export default function AdminPanel({ data, setData, dailyData, setDailyData, onBack, onHome }) {
+export default function AdminPanel({ 
+  data, 
+  setData, 
+  dailyData, 
+  setDailyData, 
+  teacherDailyData, 
+  setTeacherDailyData, 
+  onBack, 
+  onHome 
+}) {
   const [activeTab, setActiveTab] = useState('attendance') // 기본 탭을 출결로 설정
 
   const handleDataUpdate = (newData) => {
@@ -17,6 +26,10 @@ export default function AdminPanel({ data, setData, dailyData, setDailyData, onB
 
   const handleDailyDataUpdate = (newDailyData) => {
     setDailyData(newDailyData)
+  }
+
+  const handleTeacherDailyDataUpdate = (newTeacherDailyData) => {
+    setTeacherDailyData(newTeacherDailyData)
   }
 
   return (
@@ -77,9 +90,27 @@ export default function AdminPanel({ data, setData, dailyData, setDailyData, onB
       </div>
 
       <div className="admin-content">
-        {activeTab === 'attendance' && <AttendanceManagement data={data} dailyData={dailyData} />}
-        {activeTab === 'prayer' && <PrayerView data={data} dailyData={dailyData} />}
-        {activeTab === 'notes' && <NotesView data={data} dailyData={dailyData} />}
+        {activeTab === 'attendance' && (
+          <AttendanceManagement 
+            data={data} 
+            dailyData={dailyData} 
+            teacherDailyData={teacherDailyData} 
+          />
+        )}
+        {activeTab === 'prayer' && (
+          <PrayerView 
+            data={data} 
+            dailyData={dailyData} 
+            teacherDailyData={teacherDailyData} 
+          />
+        )}
+        {activeTab === 'notes' && (
+          <NotesView 
+            data={data} 
+            dailyData={dailyData} 
+            teacherDailyData={teacherDailyData} 
+          />
+        )}
         {activeTab === 'class' && (
           <ClassManagement data={data} onDataUpdate={handleDataUpdate} />
         )}
@@ -90,7 +121,14 @@ export default function AdminPanel({ data, setData, dailyData, setDailyData, onB
           <StudentManagement data={data} onDataUpdate={handleDataUpdate} />
         )}
         {activeTab === 'data' && (
-          <DataManagement data={data} dailyData={dailyData} onDataUpdate={handleDataUpdate} onDailyDataUpdate={handleDailyDataUpdate} />
+          <DataManagement 
+            data={data} 
+            dailyData={dailyData} 
+            teacherDailyData={teacherDailyData}
+            onDataUpdate={handleDataUpdate} 
+            onDailyDataUpdate={handleDailyDataUpdate} 
+            onTeacherDailyDataUpdate={handleTeacherDailyDataUpdate}
+          />
         )}
       </div>
     </div>
