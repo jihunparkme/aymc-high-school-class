@@ -134,3 +134,117 @@
 .btn-restore:hover {
   background-color: rgba(0, 113, 227, 0.1);
 }
+
+/* Attendance Stats Section */
+.attendance-stats-section {
+  background-color: var(--bg-color);
+  padding: calc(var(--grid-size) * 3);
+  border-radius: var(--radius-md);
+}
+
+.attendance-stats-section h4 {
+  font-size: 1rem;
+  color: var(--text-primary);
+  margin-bottom: calc(var(--grid-size) * 2);
+  font-weight: 600;
+}
+
+.filters {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.filter-select {
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  background-color: var(--card-bg);
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  min-width: 100px;
+  cursor: pointer;
+}
+
+.stats-table-container {
+  overflow-x: auto;
+  background-color: var(--card-bg);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.stats-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 500px;
+}
+
+.stats-table th,
+.stats-table td {
+  padding: 14px 16px;
+  text-align: center;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.stats-table th {
+  background-color: rgba(0, 0, 0, 0.03);
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.stats-table td {
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
+.stats-table tr:last-child td {
+  border-bottom: none;
+}
+
+.present-text {
+  color: var(--success-color);
+  font-weight: 600;
+}
+
+.absent-text {
+  color: var(--danger-color);
+  font-weight: 600;
+}
+
+.empty-cell {
+  color: var(--text-tertiary);
+  padding: 30px !important;
+}
+
+/* Chart Styles */
+.chart-container {
+  width: 100%;
+  height: 300px;
+  background-color: var(--card-bg);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 30px;
+  padding: 10px;
+  overflow: hidden;
+}
+
+.attendance-chart {
+  width: 100%;
+  height: 100%;
+}
+
+.attendance-chart text {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.attendance-chart circle {
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.attendance-chart circle:hover {
+  r: 8;
+  stroke-width: 3;
+}
