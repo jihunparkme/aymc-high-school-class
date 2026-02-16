@@ -18,7 +18,7 @@ const TeacherManagement = ({ data, onDataUpdate }) => {
     if (filterGradeId === 'unassigned') {
       // Check if teacher is NOT assigned to ANY class in ANY grade
       const isAssigned = data.grades.some(grade => 
-        grade.classes.some(cls => cls.teacherId === teacher.id)
+        grade.classes.some(cls => cls.teacherIds && cls.teacherIds.includes(teacher.id))
       );
       return !isAssigned;
     }
@@ -27,7 +27,7 @@ const TeacherManagement = ({ data, onDataUpdate }) => {
     const grade = data.grades.find(g => g.gradeId === filterGradeId);
     if (!grade) return false;
     
-    return grade.classes.some(cls => cls.teacherId === teacher.id);
+    return grade.classes.some(cls => cls.teacherIds && cls.teacherIds.includes(teacher.id));
   });
 
   const openAddModal = () => {
@@ -120,6 +120,11 @@ const TeacherManagement = ({ data, onDataUpdate }) => {
           {filteredTeachers.map(teacher => (
             <div key={teacher.id} className="class-item-card">
               <h4>{teacher.name}</h4>
+              {teacher.assignedClasses && (
+                <p style={{ fontSize: '0.85rem', color: '#666', marginTop: '4px' }}>
+                  담당: {teacher.assignedClasses || '없음'}
+                </p>
+              )}
               <div className="card-actions">
                 <button onClick={() => openEditModal(teacher)} className="btn-card-edit">✏️</button>
                 <button onClick={() => handleDelete(teacher.id)} className="btn-card-delete">🗑️</button>
