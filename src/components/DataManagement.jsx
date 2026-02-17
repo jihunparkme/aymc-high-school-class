@@ -17,8 +17,7 @@ export default function DataManagement({ data, dailyData }) {
   const yearlyStats = useMemo(() => {
     if (!selectedGradeId) return []
     
-    // Filter grades based on selection
-    const targetGrades = selectedGradeId === 'all' 
+    const targetGrades = selectedGradeId === 'all'
       ? data.grades 
       : data.grades.filter(g => g.gradeId === selectedGradeId)
 
@@ -27,7 +26,6 @@ export default function DataManagement({ data, dailyData }) {
     const stats = []
 
     for (let month = 1; month <= 12; month++) {
-      // 해당 월의 주차 목록
       const weekIds = new Set()
       const firstDay = new Date(selectedYear, month - 1, 1)
       const lastDay = new Date(selectedYear, month, 0)
@@ -63,7 +61,6 @@ export default function DataManagement({ data, dailyData }) {
         }
       })
 
-      // 월 평균 출석률
       const rate = totalStudents > 0 ? ((presentCount / totalStudents) * 100).toFixed(1) : 0
       stats.push({ month, rate: parseFloat(rate), hasData: weekCount > 0 })
     }
@@ -76,16 +73,14 @@ export default function DataManagement({ data, dailyData }) {
     const firstDay = new Date(selectedYear, selectedMonth - 1, 1)
     const lastDay = new Date(selectedYear, selectedMonth, 0)
     
-    // 해당 월의 모든 날짜를 순회하며 주차 ID 수집
     for (let d = new Date(firstDay); d <= lastDay; d.setDate(d.getDate() + 1)) {
       weekIds.add(getWeekId(new Date(d)))
     }
     
-    // 문자열 정렬
     return Array.from(weekIds).sort()
   }, [selectedYear, selectedMonth])
 
-  // 집계 데이터 계산
+  // 월별 상세 집계 데이터 계산
   const statistics = useMemo(() => {
     if (!selectedGradeId) return []
 
@@ -120,6 +115,20 @@ export default function DataManagement({ data, dailyData }) {
     })
   }, [selectedYear, selectedMonth, selectedGradeId, data, dailyData, weeksInMonth])
 
+  // 월 전체 평균 출석률 계산
+  const monthlyTotalStats = useMemo(() => {
+    if (!statistics || statistics.length === 0) {
+      return { rate: 0 };
+    }
+
+    const totalPresent = statistics.reduce((sum, stat) => sum + stat.present, 0);
+    const totalRegistered = statistics.reduce((sum, stat) => sum + stat.total, 0);
+
+    const rate = totalRegistered > 0 ? ((totalPresent / totalRegistered) * 100).toFixed(1) : 0;
+
+    return { rate };
+  }, [statistics]);
+
   // 차트 렌더링
   const renderChart = () => {
     const width = 600
@@ -127,26 +136,19 @@ export default function DataManagement({ data, dailyData }) {
     const padding = 40
     const chartWidth = width - padding * 2
     const chartHeight = height - padding * 2
-
-    // Y축 눈금 (0, 20, 40, 60, 80, 100)
     const yTicks = [0, 20, 40, 60, 80, 100]
 
-    // 데이터 포인트 좌표 계산
     const points = yearlyStats.map((stat, index) => {
       const x = padding + (index * (chartWidth / 11))
       const y = height - padding - (stat.rate / 100 * chartHeight)
       return { x, y, ...stat }
     })
 
-    // SVG Path 생성
-    const pathD = points.map((p, i) => 
-      (i === 0 ? 'M' : 'L') + `${p.x},${p.y}`
-    ).join(' ')
+    const pathD = points.map((p, i) => (i === 0 ? 'M' : 'L') + `${p.x},${p.y}`).join(' ')
 
     return (
       <div className="chart-container">
         <svg viewBox={`0 0 ${width} ${height}`} className="attendance-chart">
-          {/* Y축 그리드 라인 */}
           {yTicks.map(tick => {
             const y = height - padding - (tick / 100 * chartHeight)
             return (
@@ -156,18 +158,12 @@ export default function DataManagement({ data, dailyData }) {
               </g>
             )
           })}
-
-          {/* X축 라벨 */}
           {points.map((p, i) => (
             <text key={i} x={p.x} y={height - padding + 20} textAnchor="middle" fontSize="12" fill="#666">
               {p.month}월
             </text>
           ))}
-
-          {/* 그래프 라인 */}
           <path d={pathD} fill="none" stroke="#0071e3" strokeWidth="3" />
-
-          {/* 데이터 포인트 */}
           {points.map((p, i) => (
             <g key={i} onClick={() => setSelectedMonth(p.month)} style={{ cursor: 'pointer' }}>
               <circle 
@@ -178,7 +174,6 @@ export default function DataManagement({ data, dailyData }) {
                 stroke="#0071e3" 
                 strokeWidth="2" 
               />
-              {/* 툴팁 효과 (선택된 월만 값 표시) */}
               {selectedMonth === p.month && (
                 <text x={p.x} y={p.y - 15} textAnchor="middle" fontSize="12" fontWeight="bold" fill="#0071e3">
                   {p.rate}%
@@ -246,7 +241,14 @@ export default function DataManagement({ data, dailyData }) {
 
         {renderChart()}
 
-        <h4 style={{ marginTop: '30px' }}>{selectedMonth}월 상세 출결 집계</h4>
+        <div className="heading-with-badge">
+          <h4>{selectedMonth}월 상세 출결 집계</h4>
+          {monthlyTotalStats.rate > 0 && (
+            <span className="monthly-rate-badge">
+              평균 {monthlyTotalStats.rate}%
+            </span>
+          )}
+        </div>
         
         <div className="filters">
           <select 

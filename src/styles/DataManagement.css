@@ -248,3 +248,21 @@
   r: 8;
   stroke-width: 3;
 }
+
+/* Heading with Badge */
+.heading-with-badge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+.monthly-rate-badge {
+  background-color: var(--accent-color);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 1em;
+}
