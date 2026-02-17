@@ -243,7 +243,7 @@ export default function DataManagement({ data, dailyData }) {
 
         <div className="heading-with-badge">
           <h4>{selectedMonth}월 상세 출결 집계</h4>
-          {monthlyTotalStats.rate > 0 && (
+          {monthlyTotalStats.rate >= 0 && (
             <span className="monthly-rate-badge">
               평균 {monthlyTotalStats.rate}%
             </span>
