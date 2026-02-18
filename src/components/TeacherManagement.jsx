@@ -11,6 +11,14 @@ const TeacherManagement = ({ data, onDataUpdate }) => {
 
   const teachers = data?.teachers || [];
 
+  const handleFilterClick = (gradeId) => {
+    if (filterGradeId === gradeId) {
+      setFilterGradeId('all');
+    } else {
+      setFilterGradeId(gradeId);
+    }
+  };
+
   // Filter teachers by grade
   const filteredTeachers = teachers.filter(teacher => {
     if (filterGradeId === 'all') return true;
@@ -82,23 +90,17 @@ const TeacherManagement = ({ data, onDataUpdate }) => {
   return (
     <div className="class-management"> {/* Reusing class-management layout */}
       <div className="filter-container">
-        <button
-          onClick={() => setFilterGradeId('all')}
-          className={`filter-chip ${filterGradeId === 'all' ? 'active' : ''}`}
-        >
-          전체
-        </button>
         {data?.grades?.map(grade => (
           <button
             key={grade.gradeId}
-            onClick={() => setFilterGradeId(grade.gradeId)}
+            onClick={() => handleFilterClick(grade.gradeId)}
             className={`filter-chip ${filterGradeId === grade.gradeId ? 'active' : ''}`}
           >
             {grade.gradeName}
           </button>
         ))}
         <button
-          onClick={() => setFilterGradeId('unassigned')}
+          onClick={() => handleFilterClick('unassigned')}
           className={`filter-chip ${filterGradeId === 'unassigned' ? 'active' : ''}`}
         >
           미지정

@@ -28,6 +28,14 @@ const ClassManagement = ({ data, onDataUpdate }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [wrapperRef]);
 
+  const handleFilterClick = (gradeId) => {
+    if (filterGradeId === gradeId) {
+      setFilterGradeId('all');
+    } else {
+      setFilterGradeId(gradeId);
+    }
+  };
+
   const openAddModal = (gradeId) => {
     setModalMode('add');
     setTargetGradeId(gradeId);
@@ -94,7 +102,6 @@ const ClassManagement = ({ data, onDataUpdate }) => {
       return;
     }
 
-    // Check for duplicate class name in the same grade
     if (modalMode === 'add') {
       const targetGrade = data.grades.find(g => g.gradeId === targetGradeId);
       if (targetGrade) {
@@ -147,16 +154,10 @@ const ClassManagement = ({ data, onDataUpdate }) => {
   return (
     <div className="class-management">
       <div className="filter-container">
-        <button
-          onClick={() => setFilterGradeId('all')}
-          className={`filter-chip ${filterGradeId === 'all' ? 'active' : ''}`}
-        >
-          전체
-        </button>
         {data?.grades?.map(grade => (
           <button
             key={grade.gradeId}
-            onClick={() => setFilterGradeId(grade.gradeId)}
+            onClick={() => handleFilterClick(grade.gradeId)}
             className={`filter-chip ${filterGradeId === grade.gradeId ? 'active' : ''}`}
           >
             {grade.gradeName}

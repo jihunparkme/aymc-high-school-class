@@ -20,6 +20,15 @@ export default function AttendanceManagement({ data, dailyData, teacherDailyData
     setCurrentWeekDate(getTodayWeek())
   }
 
+  const handleFilterClick = (gradeId) => {
+    // 이미 선택된 필터를 다시 클릭하면 'all'로 설정 (선택 해제)
+    if (selectedGradeId === gradeId) {
+      setSelectedGradeId('all');
+    } else {
+      setSelectedGradeId(gradeId);
+    }
+  };
+
   const filteredGrades = selectedGradeId === 'all' 
     ? data.grades 
     : selectedGradeId === 'teachers'
@@ -42,23 +51,17 @@ export default function AttendanceManagement({ data, dailyData, teacherDailyData
       </div>
 
       <div className="filter-container">
-        <button
-          onClick={() => setSelectedGradeId('all')}
-          className={`filter-chip ${selectedGradeId === 'all' ? 'active' : ''}`}
-        >
-          전체
-        </button>
         {data.grades.map(grade => (
           <button
             key={grade.gradeId}
-            onClick={() => setSelectedGradeId(grade.gradeId)}
+            onClick={() => handleFilterClick(grade.gradeId)}
             className={`filter-chip ${selectedGradeId === grade.gradeId ? 'active' : ''}`}
           >
             {grade.gradeName}
           </button>
         ))}
         <button
-          onClick={() => setSelectedGradeId('teachers')}
+          onClick={() => handleFilterClick('teachers')}
           className={`filter-chip ${selectedGradeId === 'teachers' ? 'active' : ''}`}
         >
           교사
