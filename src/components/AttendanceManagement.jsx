@@ -41,21 +41,28 @@ export default function AttendanceManagement({ data, dailyData, teacherDailyData
         <button onClick={handleNextWeek}>다음주 →</button>
       </div>
 
-      <div className="grade-selector-attendance">
-        <label htmlFor="grade-select"></label>
-        <select 
-          id="grade-select" 
-          value={selectedGradeId} 
-          onChange={(e) => setSelectedGradeId(e.target.value)}
+      <div className="filter-container">
+        <button
+          onClick={() => setSelectedGradeId('all')}
+          className={`filter-chip ${selectedGradeId === 'all' ? 'active' : ''}`}
         >
-          <option value="all">전체 (학생 + 교사)</option>
-          {data.grades.map(grade => (
-            <option key={grade.gradeId} value={grade.gradeId}>
-              {grade.gradeName}
-            </option>
-          ))}
-          <option value="teachers">교사 전체</option>
-        </select>
+          전체
+        </button>
+        {data.grades.map(grade => (
+          <button
+            key={grade.gradeId}
+            onClick={() => setSelectedGradeId(grade.gradeId)}
+            className={`filter-chip ${selectedGradeId === grade.gradeId ? 'active' : ''}`}
+          >
+            {grade.gradeName}
+          </button>
+        ))}
+        <button
+          onClick={() => setSelectedGradeId('teachers')}
+          className={`filter-chip ${selectedGradeId === 'teachers' ? 'active' : ''}`}
+        >
+          교사
+        </button>
       </div>
 
       {filteredGrades.map(grade => (

@@ -31,31 +31,6 @@
     margin-bottom: calc(var(--grid-size) * 5);
 }
 
-.grade-selector-attendance {
-    margin-bottom: calc(var(--grid-size) * 4);
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: calc(var(--grid-size));
-}
-
-.grade-selector-attendance label {
-    font-size: 0.95rem;
-    font-weight: 500;
-    color: var(--text-secondary);
-}
-
-.grade-selector-attendance select {
-    padding: 8px 16px;
-    border-radius: 12px;
-    border: 1px solid var(--border-color);
-    min-width: 160px;
-    background-color: var(--card-bg);
-    color: var(--text-primary);
-    font-weight: 500;
-    cursor: pointer;
-}
-
 .grade-section {
     margin-bottom: calc(var(--grid-size) * 6);
 }
@@ -124,4 +99,39 @@
     border-radius: 6px;
     background-color: rgba(0, 0, 0, 0.05);
     color: var(--text-secondary);
+}
+
+/* Filter Chips (Copied from ClassManagement.css) */
+.filter-container {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  margin-bottom: 24px; /* Increased margin for better spacing */
+  -webkit-overflow-scrolling: touch;
+  justify-content: center;
+}
+
+.filter-chip {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-color);
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.filter-chip:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.filter-chip.active {
+  background-color: var(--accent-color);
+  color: white;
+  border-color: var(--accent-color);
+  box-shadow: 0 2px 8px rgba(0, 113, 227, 0.3);
 }
