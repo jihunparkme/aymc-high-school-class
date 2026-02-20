@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import '../styles/DataManagement.css'
 import { getWeekId } from '../utils/dataManager'
 
-export default function DataManagement({ data, dailyData }) {
+export default function DataManagement({ data, dailyData, teacherDailyData }) {
   const today = new Date()
   const [selectedYear, setSelectedYear] = useState(today.getFullYear())
   const [selectedMonth, setSelectedMonth] = useState(today.getMonth() + 1)
@@ -12,6 +12,90 @@ export default function DataManagement({ data, dailyData }) {
   const yearOptions = Array.from({ length: 5 }, (_, i) => today.getFullYear() - 2 + i)
   // 월 옵션
   const monthOptions = Array.from({ length: 12 }, (_, i) => i + 1)
+
+  const handleDownload = () => {
+    const dataRows = [];
+
+    // Helper to escape CSV content
+    const escapeCsv = (str) => {
+      if (str === null || str === undefined) return '';
+      let result = String(str);
+      if (result.includes('"') || result.includes(',') || result.includes('\n')) {
+        result = '"' + result.replace(/"/g, '""') + '"';
+      }
+      return result;
+    };
+
+    // Process student data
+    data.grades.forEach(grade => {
+      grade.classes.forEach(classItem => {
+        classItem.students.forEach(student => {
+          const studentRecords = dailyData[student.studentId] || {};
+          Object.keys(studentRecords).forEach(weekId => {
+            const record = studentRecords[weekId];
+            dataRows.push([
+              weekId,
+              `${grade.gradeName}/${classItem.className}`,
+              student.name,
+              record.attendance ? '출석' : '결석',
+              record.prayerRequests?.join('\n') || '',
+              record.notes || ''
+            ]);
+          });
+        });
+      });
+    });
+
+    // Process teacher data
+    if (data.teachers && teacherDailyData) {
+      data.teachers.forEach(teacher => {
+        const teacherRecords = teacherDailyData[teacher.id] || {};
+        Object.keys(teacherRecords).forEach(weekId => {
+          const record = teacherRecords[weekId];
+          dataRows.push([
+            weekId,
+            '교사', // For sorting purposes
+            teacher.name,
+            record.attendance ? '출석' : '결석',
+            record.prayerRequests?.join('\n') || '',
+            record.notes || ''
+          ]);
+        });
+      });
+    }
+
+    // Sort data rows
+    dataRows.sort((a, b) => {
+      const [weekA, classA, nameA] = a;
+      const [weekB, classB, nameB] = b;
+
+      // 1. Sort by weekId (주차)
+      if (weekA !== weekB) return weekA.localeCompare(weekB);
+      // 2. Sort by grade/class (학년/반) - '교사' comes after students
+      if (classA === '교사' && classB !== '교사') return 1;
+      if (classA !== '교사' && classB === '교사') return -1;
+      if (classA !== classB) return classA.localeCompare(classB);
+      // 3. Sort by name (이름)
+      return nameA.localeCompare(nameB);
+    });
+
+    const header = [['주차', '학년/반', '이름', '출결여부', '기도제목', '특이사항']];
+    const rows = header.concat(dataRows);
+
+    // Create CSV string
+    const csvContent = "data:text/csv;charset=utf-8,"
+      + '\uFEFF' // UTF-8 BOM for Excel compatibility
+      + rows.map(e => e.map(escapeCsv).join(",")).join("\n");
+
+    // Create download link and trigger click
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `aymc_hs_data_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   // 연간 데이터 계산 (그래프용)
   const yearlyStats = useMemo(() => {
@@ -189,7 +273,12 @@ export default function DataManagement({ data, dailyData }) {
   return (
     <div className="data-management">
       <div className="data-info">
-        <h4>데이터 구조</h4>
+        <div className="heading-with-button">
+          <h4>데이터 구조</h4>
+          <button onClick={handleDownload} className="btn-download-csv">
+            데이터 내보내기
+          </button>
+        </div>
         <div className="stats-summary">
           <div className="stat-summary-item">
             <span>전체 반</span>
