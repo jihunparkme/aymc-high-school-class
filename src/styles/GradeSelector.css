@@ -65,6 +65,7 @@
   text-align: center;
   color: var(--text-secondary);
   font-size: 0.95rem;
+  margin-top: calc(var(--grid-size) * 2.5);
   margin-bottom: calc(var(--grid-size) * 2.5);
   font-weight: 500;
   opacity: 0.8;

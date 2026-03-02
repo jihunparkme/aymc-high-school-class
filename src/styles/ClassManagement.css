@@ -10,8 +10,9 @@
   gap: 8px;
   overflow-x: auto;
   padding-bottom: 8px;
-  margin-bottom: 16px;
   -webkit-overflow-scrolling: touch;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
 .filter-chip {

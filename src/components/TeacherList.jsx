@@ -130,7 +130,7 @@ export default function TeacherList({
       </div>
 
       {/* Grade Filter */}
-      <div className="filter-container" style={{ justifyContent: 'center', marginBottom: '16px' }}>
+      <div className="filter-container">
         <button
           onClick={() => setFilterGradeId('all')}
           className={`filter-chip ${filterGradeId === 'all' ? 'active' : ''}`}
