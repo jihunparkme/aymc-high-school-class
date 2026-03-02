@@ -3,19 +3,19 @@ import '../styles/GradeSelector.css'
 export default function GradeSelector({ data, onSelectGrade, onAdminClick, onTeacherClick }) {
   const getGradeIcon = (gradeId) => {
     switch(gradeId) {
-      case '1': return '🌱';
-      case '2': return '🌿';
-      case '3': return '🌳';
-      default: return '🏫';
+      case '1': return '🌱'
+      case '2': return '🌿'
+      case '3': return '🌳'
+      default: return '🏫'
     }
   }
 
   const getGradeDescription = (gradeId) => {
     switch(gradeId) {
-      case '1': return '새로운 시작, 1학년';
-      case '2': return '성장하는 믿음, 2학년';
-      case '3': return '세상의 빛, 3학년';
-      default: return '학생 관리';
+      case '1': return '새로운 시작, 1학년'
+      case '2': return '성장하는 믿음, 2학년'
+      case '3': return '세상의 빛, 3학년'
+      default: return '학생 관리'
     }
   }
 

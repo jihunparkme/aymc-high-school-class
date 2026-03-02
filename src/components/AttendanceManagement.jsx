@@ -1,33 +1,19 @@
 import { useState } from 'react'
-import { getNextWeek, getPreviousWeek, getTodayWeek, getWeekId } from '../utils/dataManager'
+import useWeekNavigation from '../hooks/useWeekNavigation'
 import '../styles/AttendanceManagement.css'
 
 export default function AttendanceManagement({ data, dailyData, teacherDailyData }) {
-  const [currentWeekDate, setCurrentWeekDate] = useState(new Date())
+  const { weekId, goToPrevWeek, goToNextWeek, goToThisWeek } = useWeekNavigation()
   const [selectedGradeId, setSelectedGradeId] = useState('all') // 'all', 'teachers', 또는 특정 gradeId
-
-  const weekId = getWeekId(currentWeekDate)
-
-  const handlePrevWeek = () => {
-    setCurrentWeekDate(getPreviousWeek(currentWeekDate))
-  }
-
-  const handleNextWeek = () => {
-    setCurrentWeekDate(getNextWeek(currentWeekDate))
-  }
-
-  const handleToday = () => {
-    setCurrentWeekDate(getTodayWeek())
-  }
 
   const handleFilterClick = (gradeId) => {
     // 이미 선택된 필터를 다시 클릭하면 'all'로 설정 (선택 해제)
     if (selectedGradeId === gradeId) {
-      setSelectedGradeId('all');
+      setSelectedGradeId('all')
     } else {
-      setSelectedGradeId(gradeId);
+      setSelectedGradeId(gradeId)
     }
-  };
+  }
 
   const filteredGrades = selectedGradeId === 'all' 
     ? data.grades 
@@ -45,9 +31,9 @@ export default function AttendanceManagement({ data, dailyData, teacherDailyData
       </div>
 
       <div className="date-navigation">
-        <button onClick={handlePrevWeek}>← 이전주</button>
-        <button className="today-btn" onClick={handleToday}>오늘</button>
-        <button onClick={handleNextWeek}>다음주 →</button>
+        <button onClick={goToPrevWeek}>← 이전주</button>
+        <button className="today-btn" onClick={goToThisWeek}>오늘</button>
+        <button onClick={goToNextWeek}>다음주 →</button>
       </div>
 
       <div className="filter-container">

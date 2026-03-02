@@ -1,91 +1,91 @@
-import React, { useState } from 'react';
-import '../styles/ClassManagement.css'; // Reusing styles for consistency
-import { addTeacher, updateTeacher, removeTeacher, loadFromSupabase } from '../utils/dataManager';
+import { useState } from 'react'
+import '../styles/ClassManagement.css' // Reusing styles for consistency
+import { addTeacher, updateTeacher, removeTeacher, loadFromSupabase } from '../utils/dataManager'
 
-const TeacherManagement = ({ data, onDataUpdate }) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState('add'); // 'add' | 'edit'
-  const [teacherName, setTeacherName] = useState('');
-  const [editingTeacherId, setEditingTeacherId] = useState(null);
-  const [filterGradeId, setFilterGradeId] = useState('all');
+export default function TeacherManagement({ data, onDataUpdate }) {
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [modalMode, setModalMode] = useState('add') // 'add' | 'edit'
+  const [teacherName, setTeacherName] = useState('')
+  const [editingTeacherId, setEditingTeacherId] = useState(null)
+  const [filterGradeId, setFilterGradeId] = useState('all')
 
-  const teachers = data?.teachers || [];
+  const teachers = data?.teachers || []
 
   const handleFilterClick = (gradeId) => {
     if (filterGradeId === gradeId) {
-      setFilterGradeId('all');
+      setFilterGradeId('all')
     } else {
-      setFilterGradeId(gradeId);
+      setFilterGradeId(gradeId)
     }
-  };
+  }
 
   // Filter teachers by grade
   const filteredTeachers = teachers.filter(teacher => {
-    if (filterGradeId === 'all') return true;
+    if (filterGradeId === 'all') return true
 
     if (filterGradeId === 'unassigned') {
       // Check if teacher is NOT assigned to ANY class in ANY grade
       const isAssigned = data.grades.some(grade => 
         grade.classes.some(cls => cls.teacherIds && cls.teacherIds.includes(teacher.id))
-      );
-      return !isAssigned;
+      )
+      return !isAssigned
     }
 
     // Check if teacher is assigned to any class in the selected grade
-    const grade = data.grades.find(g => g.gradeId === filterGradeId);
-    if (!grade) return false;
+    const grade = data.grades.find(g => g.gradeId === filterGradeId)
+    if (!grade) return false
     
-    return grade.classes.some(cls => cls.teacherIds && cls.teacherIds.includes(teacher.id));
-  });
+    return grade.classes.some(cls => cls.teacherIds && cls.teacherIds.includes(teacher.id))
+  })
 
   const openAddModal = () => {
-    setModalMode('add');
-    setTeacherName('');
-    setEditingTeacherId(null);
-    setIsModalOpen(true);
-  };
+    setModalMode('add')
+    setTeacherName('')
+    setEditingTeacherId(null)
+    setIsModalOpen(true)
+  }
 
   const openEditModal = (teacher) => {
-    setModalMode('edit');
-    setEditingTeacherId(teacher.id);
-    setTeacherName(teacher.name);
-    setIsModalOpen(true);
-  };
+    setModalMode('edit')
+    setEditingTeacherId(teacher.id)
+    setTeacherName(teacher.name)
+    setIsModalOpen(true)
+  }
 
   const handleSave = async () => {
     if (!teacherName.trim()) {
-      alert('선생님 이름을 입력해주세요.');
-      return;
+      alert('선생님 이름을 입력해주세요.')
+      return
     }
 
-    let success = false;
+    let success = false
     if (modalMode === 'add') {
-      const newTeacher = await addTeacher(teacherName);
-      success = !!newTeacher;
+      const newTeacher = await addTeacher(teacherName)
+      success = !!newTeacher
     } else {
-      success = await updateTeacher(editingTeacherId, teacherName);
+      success = await updateTeacher(editingTeacherId, teacherName)
     }
 
     if (success) {
-      setIsModalOpen(false);
-      const { data: newData } = await loadFromSupabase();
-      if (newData) onDataUpdate(newData);
+      setIsModalOpen(false)
+      const { data: newData } = await loadFromSupabase()
+      if (newData) onDataUpdate(newData)
     } else {
-      alert('저장에 실패했습니다.');
+      alert('저장에 실패했습니다.')
     }
-  };
+  }
 
   const handleDelete = async (teacherId) => {
     if (window.confirm('정말 이 선생님을 삭제하시겠습니까? 담당하고 있는 반 정보에서 선생님 정보가 해제됩니다.')) {
-      const success = await removeTeacher(teacherId);
+      const success = await removeTeacher(teacherId)
       if (success) {
-        const { data: newData } = await loadFromSupabase();
-        if (newData) onDataUpdate(newData);
+        const { data: newData } = await loadFromSupabase()
+        if (newData) onDataUpdate(newData)
       } else {
-        alert('삭제 실패');
+        alert('삭제 실패')
       }
     }
-  };
+  }
 
   return (
     <div className="class-management"> {/* Reusing class-management layout */}
@@ -171,7 +171,5 @@ const TeacherManagement = ({ data, onDataUpdate }) => {
         </div>
       )}
     </div>
-  );
-};
-
-export default TeacherManagement;
+  )
+}

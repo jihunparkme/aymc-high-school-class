@@ -131,9 +131,7 @@ function App() {
           data={data}
           setData={setData}
           dailyData={dailyData}
-          setDailyData={setDailyData}
-          teacherDailyData={teacherDailyData} // Pass teacherDailyData
-          setTeacherDailyData={setTeacherDailyData} // Pass setTeacherDailyData
+          teacherDailyData={teacherDailyData}
           onBack={goBack}
           onHome={goHome}
         />

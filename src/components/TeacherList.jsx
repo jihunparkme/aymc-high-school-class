@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import '../styles/StudentList.css'
-import '../styles/ClassManagement.css' // Import ClassManagement styles for filter chips
+import '../styles/ClassManagement.css'
 import StudentCard from './StudentCard'
 import InputModal from './InputModal'
-import { getNextWeek, getPreviousWeek, getTodayWeek, getWeekId, updateTeacherAttendance, updateTeacherNotes, addTeacherPrayerRequest } from '../utils/dataManager'
+import useWeekNavigation from '../hooks/useWeekNavigation'
+import { applyOptimisticUpdate } from '../utils/optimisticUpdate'
+import { updateTeacherAttendance, updateTeacherNotes, addTeacherPrayerRequest } from '../utils/dataManager'
 
 export default function TeacherList({ 
   data, 
@@ -12,33 +14,36 @@ export default function TeacherList({
   onBack,
   onHome
 }) {
-  const [currentDate, setCurrentDate] = useState(new Date())
+  const { weekId, goToPrevWeek, goToNextWeek, goToThisWeek } = useWeekNavigation()
   const [selectedTeacher, setSelectedTeacher] = useState(null)
   const [modalType, setModalType] = useState(null)
   const [filterType, setFilterType] = useState('all')
   const [filterGradeId, setFilterGradeId] = useState('all')
+  const [searchTerm, setSearchTerm] = useState('')
 
   const teachers = data.teachers || []
-  const weekId = getWeekId(currentDate)
 
   const filteredTeachers = teachers.filter(t => {
+    // 0. Name search
+    if (searchTerm && !t.name.includes(searchTerm)) return false
+
     // 1. Grade Filter
-    let gradeMatch = true;
+    let gradeMatch = true
     if (filterGradeId !== 'all') {
       if (filterGradeId === 'unassigned') {
         const isAssigned = data.grades.some(grade => 
           grade.classes.some(cls => cls.teacherIds && cls.teacherIds.includes(t.id))
-        );
-        gradeMatch = !isAssigned;
+        )
+        gradeMatch = !isAssigned
       } else {
-        const grade = data.grades.find(g => g.gradeId === filterGradeId);
-        if (!grade) gradeMatch = false;
+        const grade = data.grades.find(g => g.gradeId === filterGradeId)
+        if (!grade) gradeMatch = false
         else {
-          gradeMatch = grade.classes.some(cls => cls.teacherIds && cls.teacherIds.includes(t.id));
+          gradeMatch = grade.classes.some(cls => cls.teacherIds && cls.teacherIds.includes(t.id))
         }
       }
     }
-    if (!gradeMatch) return false;
+    if (!gradeMatch) return false
 
     // 2. Attendance Filter
     if (filterType === 'all') return true
@@ -61,63 +66,26 @@ export default function TeacherList({
   const handleSave = async (content) => {
     if (!selectedTeacher) return
     
-    // Optimistic UI Update
-    const newDailyData = JSON.parse(JSON.stringify(teacherDailyData))
-    if (!newDailyData[selectedTeacher.id]) {
-      newDailyData[selectedTeacher.id] = {}
-    }
-    if (!newDailyData[selectedTeacher.id][weekId]) {
-      newDailyData[selectedTeacher.id][weekId] = {
-        prayerRequests: [],
-        notes: '',
-        attendance: false
-      }
-    }
-
-    if (modalType === 'prayer') {
-      newDailyData[selectedTeacher.id][weekId].prayerRequests.push(content)
-      await addTeacherPrayerRequest(selectedTeacher.id, weekId, content)
-    } else if (modalType === 'notes') {
-      newDailyData[selectedTeacher.id][weekId].notes = content
-      await updateTeacherNotes(selectedTeacher.id, weekId, content)
-    }
-
-    setTeacherDailyData(newDailyData)
+    const id = selectedTeacher.id
+    const type = modalType
     handleCloseModal()
+
+    if (type === 'prayer') {
+      setTeacherDailyData(applyOptimisticUpdate(teacherDailyData, id, weekId, w => w.prayerRequests.push(content)))
+      await addTeacherPrayerRequest(id, weekId, content)
+    } else if (type === 'notes') {
+      setTeacherDailyData(applyOptimisticUpdate(teacherDailyData, id, weekId, w => { w.notes = content }))
+      await updateTeacherNotes(id, weekId, content)
+    }
   }
 
   const handleToggleAttendance = async (teacherId) => {
-    // Optimistic UI Update
-    const newDailyData = JSON.parse(JSON.stringify(teacherDailyData))
-    if (!newDailyData[teacherId]) {
-      newDailyData[teacherId] = {}
-    }
-    if (!newDailyData[teacherId][weekId]) {
-      newDailyData[teacherId][weekId] = {
-        prayerRequests: [],
-        notes: '',
-        attendance: false
-      }
-    }
-
-    const newAttendance = !newDailyData[teacherId][weekId].attendance
-    newDailyData[teacherId][weekId].attendance = newAttendance
-    
-    setTeacherDailyData(newDailyData)
+    const current = teacherDailyData[teacherId]?.[weekId]?.attendance || false
+    const newAttendance = !current
+    setTeacherDailyData(applyOptimisticUpdate(teacherDailyData, teacherId, weekId, w => { w.attendance = newAttendance }))
     await updateTeacherAttendance(teacherId, weekId, newAttendance)
   }
 
-  const handlePrevWeek = () => {
-    setCurrentDate(getPreviousWeek(currentDate))
-  }
-
-  const handleNextWeek = () => {
-    setCurrentDate(getNextWeek(currentDate))
-  }
-
-  const handleThisWeek = () => {
-    setCurrentDate(getTodayWeek())
-  }
 
   return (
     <div className="student-list">
@@ -141,14 +109,24 @@ export default function TeacherList({
 
       <div className="date-selector-container">
         <div className="week-navigation">
-          <button className="week-btn" onClick={handlePrevWeek}>← 이전 주</button>
+          <button className="week-btn" onClick={goToPrevWeek}>← 이전 주</button>
           <span className="week-range">{weekId}</span>
-          <button className="week-btn" onClick={handleNextWeek}>다음 주 →</button>
+          <button className="week-btn" onClick={goToNextWeek}>다음 주 →</button>
         </div>
         
         <div className="today-action">
-           <button className="today-btn" onClick={handleThisWeek}>이번 주차로 이동</button>
+           <button className="today-btn" onClick={goToThisWeek}>이번 주차로 이동</button>
         </div>
+      </div>
+
+      <div className="search-section">
+        <input
+          type="text"
+          placeholder="선생님 이름 검색"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="search-input"
+        />
       </div>
 
       {/* Grade Filter */}

@@ -2,18 +2,23 @@ import { useState, useEffect } from 'react'
 import '../styles/InputModal.css'
 
 export default function InputModal({ student, modalType, currentContent, onClose, onSave }) {
-  const [input, setInput] = useState('')
+  const [input, setInput] = useState(modalType === 'notes' && typeof currentContent === 'string' ? currentContent : '')
 
   useEffect(() => {
     if (modalType === 'notes' && typeof currentContent === 'string') {
       setInput(currentContent)
+    } else {
+      setInput('')
     }
-  }, [modalType, currentContent])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentContent])
 
   const handleSubmit = () => {
     if (input.trim()) {
       onSave(input.trim())
-      setInput('')
+      if (modalType === 'prayer') {
+        setInput('')
+      }
     }
   }
 

@@ -2,11 +2,11 @@ import { useState } from 'react'
 import '../styles/StudentList.css'
 import StudentCard from './StudentCard'
 import InputModal from './InputModal'
-import { getNextWeek, getPreviousWeek, getTodayWeek, getWeekId, updateAttendance, updateNotes, addPrayerRequest } from '../utils/dataManager'
+import useWeekNavigation from '../hooks/useWeekNavigation'
+import { applyOptimisticUpdate } from '../utils/optimisticUpdate'
+import { updateAttendance, updateNotes, addPrayerRequest } from '../utils/dataManager'
 
 export default function StudentList({ 
-  data, 
-  setData,
   dailyData,
   setDailyData,
   selectedGrade, 
@@ -14,13 +14,12 @@ export default function StudentList({
   onBack,
   onHome
 }) {
-  const [currentDate, setCurrentDate] = useState(new Date())
+  const { weekId, goToPrevWeek, goToNextWeek, goToThisWeek } = useWeekNavigation()
   const [selectedStudent, setSelectedStudent] = useState(null)
   const [modalType, setModalType] = useState(null)
   const [filterType, setFilterType] = useState('all')
 
   const students = selectedClass.students
-  const weekId = getWeekId(currentDate)
 
   const filteredStudents = students.filter(s => {
     if (filterType === 'all') return true
@@ -43,63 +42,26 @@ export default function StudentList({
   const handleSave = async (content) => {
     if (!selectedStudent) return
     
-    // Optimistic UI Update
-    const newDailyData = JSON.parse(JSON.stringify(dailyData))
-    if (!newDailyData[selectedStudent.studentId]) {
-      newDailyData[selectedStudent.studentId] = {}
-    }
-    if (!newDailyData[selectedStudent.studentId][weekId]) {
-      newDailyData[selectedStudent.studentId][weekId] = {
-        prayerRequests: [],
-        notes: '',
-        attendance: false
-      }
-    }
-
-    if (modalType === 'prayer') {
-      newDailyData[selectedStudent.studentId][weekId].prayerRequests.push(content)
-      await addPrayerRequest(selectedStudent.studentId, weekId, content)
-    } else if (modalType === 'notes') {
-      newDailyData[selectedStudent.studentId][weekId].notes = content
-      await updateNotes(selectedStudent.studentId, weekId, content)
-    }
-
-    setDailyData(newDailyData)
+    const id = selectedStudent.studentId
+    const type = modalType
     handleCloseModal()
+
+    if (type === 'prayer') {
+      setDailyData(applyOptimisticUpdate(dailyData, id, weekId, w => w.prayerRequests.push(content)))
+      await addPrayerRequest(id, weekId, content)
+    } else if (type === 'notes') {
+      setDailyData(applyOptimisticUpdate(dailyData, id, weekId, w => { w.notes = content }))
+      await updateNotes(id, weekId, content)
+    }
   }
 
   const handleToggleAttendance = async (studentId) => {
-    // Optimistic UI Update
-    const newDailyData = JSON.parse(JSON.stringify(dailyData))
-    if (!newDailyData[studentId]) {
-      newDailyData[studentId] = {}
-    }
-    if (!newDailyData[studentId][weekId]) {
-      newDailyData[studentId][weekId] = {
-        prayerRequests: [],
-        notes: '',
-        attendance: false
-      }
-    }
-
-    const newAttendance = !newDailyData[studentId][weekId].attendance
-    newDailyData[studentId][weekId].attendance = newAttendance
-    
-    setDailyData(newDailyData)
+    const current = dailyData[studentId]?.[weekId]?.attendance || false
+    const newAttendance = !current
+    setDailyData(applyOptimisticUpdate(dailyData, studentId, weekId, w => { w.attendance = newAttendance }))
     await updateAttendance(studentId, weekId, newAttendance)
   }
 
-  const handlePrevWeek = () => {
-    setCurrentDate(getPreviousWeek(currentDate))
-  }
-
-  const handleNextWeek = () => {
-    setCurrentDate(getNextWeek(currentDate))
-  }
-
-  const handleThisWeek = () => {
-    setCurrentDate(getTodayWeek())
-  }
 
   return (
     <div className="student-list">
@@ -123,13 +85,13 @@ export default function StudentList({
 
       <div className="date-selector-container">
         <div className="week-navigation">
-          <button className="week-btn" onClick={handlePrevWeek}>← 이전 주</button>
+          <button className="week-btn" onClick={goToPrevWeek}>← 이전 주</button>
           <span className="week-range">{weekId}</span>
-          <button className="week-btn" onClick={handleNextWeek}>다음 주 →</button>
+          <button className="week-btn" onClick={goToNextWeek}>다음 주 →</button>
         </div>
         
         <div className="today-action">
-           <button className="today-btn" onClick={handleThisWeek}>이번 주차로 이동</button>
+           <button className="today-btn" onClick={goToThisWeek}>이번 주차로 이동</button>
         </div>
       </div>
 

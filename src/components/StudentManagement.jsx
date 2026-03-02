@@ -31,7 +31,7 @@ export default function StudentManagement({ data, onDataUpdate }) {
     const createdStudent = await addStudent(selectedClass, newStudent)
 
     if (createdStudent) {
-      const newData = JSON.parse(JSON.stringify(data))
+      const newData = structuredClone(data)
       const targetGrade = newData.grades.find(g => g.gradeId === selectedGrade)
       const targetClass = targetGrade.classes.find(c => c.classId === selectedClass)
       
@@ -59,7 +59,7 @@ export default function StudentManagement({ data, onDataUpdate }) {
       const success = await removeStudent(student.studentId)
       
       if (success) {
-        const newData = JSON.parse(JSON.stringify(data))
+        const newData = structuredClone(data)
         const targetGrade = newData.grades.find(g => g.gradeId === selectedGrade)
         const targetClass = targetGrade.classes.find(c => c.classId === selectedClass)
         targetClass.students = targetClass.students.filter(s => s.studentId !== student.studentId)
@@ -84,7 +84,7 @@ export default function StudentManagement({ data, onDataUpdate }) {
     const success = await updateStudent(studentId, tempStudentName)
 
     if (success) {
-      const newData = JSON.parse(JSON.stringify(data))
+      const newData = structuredClone(data)
       const targetGrade = newData.grades.find(g => g.gradeId === selectedGrade)
       const targetClass = targetGrade.classes.find(c => c.classId === selectedClass)
       const targetStudent = targetClass.students.find(s => s.studentId === studentId)

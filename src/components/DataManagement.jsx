@@ -14,25 +14,25 @@ export default function DataManagement({ data, dailyData, teacherDailyData }) {
   const monthOptions = Array.from({ length: 12 }, (_, i) => i + 1)
 
   const handleDownload = () => {
-    const dataRows = [];
+    const dataRows = []
 
     // Helper to escape CSV content
     const escapeCsv = (str) => {
-      if (str === null || str === undefined) return '';
-      let result = String(str);
+      if (str === null || str === undefined) return ''
+      let result = String(str)
       if (result.includes('"') || result.includes(',') || result.includes('\n')) {
-        result = '"' + result.replace(/"/g, '""') + '"';
+        result = '"' + result.replace(/"/g, '""') + '"'
       }
-      return result;
-    };
+      return result
+    }
 
     // Process student data
     data.grades.forEach(grade => {
       grade.classes.forEach(classItem => {
         classItem.students.forEach(student => {
-          const studentRecords = dailyData[student.studentId] || {};
+          const studentRecords = dailyData[student.studentId] || {}
           Object.keys(studentRecords).forEach(weekId => {
-            const record = studentRecords[weekId];
+            const record = studentRecords[weekId]
             dataRows.push([
               weekId,
               `${grade.gradeName}/${classItem.className}`,
@@ -40,18 +40,18 @@ export default function DataManagement({ data, dailyData, teacherDailyData }) {
               record.attendance ? '출석' : '결석',
               record.prayerRequests?.join('\n') || '',
               record.notes || ''
-            ]);
-          });
-        });
-      });
-    });
+            ])
+          })
+        })
+      })
+    })
 
     // Process teacher data
     if (data.teachers && teacherDailyData) {
       data.teachers.forEach(teacher => {
-        const teacherRecords = teacherDailyData[teacher.id] || {};
+        const teacherRecords = teacherDailyData[teacher.id] || {}
         Object.keys(teacherRecords).forEach(weekId => {
-          const record = teacherRecords[weekId];
+          const record = teacherRecords[weekId]
           dataRows.push([
             weekId,
             '교사', // For sorting purposes
@@ -59,43 +59,43 @@ export default function DataManagement({ data, dailyData, teacherDailyData }) {
             record.attendance ? '출석' : '결석',
             record.prayerRequests?.join('\n') || '',
             record.notes || ''
-          ]);
-        });
-      });
+          ])
+        })
+      })
     }
 
     // Sort data rows
     dataRows.sort((a, b) => {
-      const [weekA, classA, nameA] = a;
-      const [weekB, classB, nameB] = b;
+      const [weekA, classA, nameA] = a
+      const [weekB, classB, nameB] = b
 
       // 1. Sort by weekId (주차)
-      if (weekA !== weekB) return weekA.localeCompare(weekB);
+      if (weekA !== weekB) return weekA.localeCompare(weekB)
       // 2. Sort by grade/class (학년/반) - '교사' comes after students
-      if (classA === '교사' && classB !== '교사') return 1;
-      if (classA !== '교사' && classB === '교사') return -1;
-      if (classA !== classB) return classA.localeCompare(classB);
+      if (classA === '교사' && classB !== '교사') return 1
+      if (classA !== '교사' && classB === '교사') return -1
+      if (classA !== classB) return classA.localeCompare(classB)
       // 3. Sort by name (이름)
-      return nameA.localeCompare(nameB);
-    });
+      return nameA.localeCompare(nameB)
+    })
 
-    const header = [['주차', '학년/반', '이름', '출결여부', '기도제목', '특이사항']];
-    const rows = header.concat(dataRows);
+    const header = [['주차', '학년/반', '이름', '출결여부', '기도제목', '특이사항']]
+    const rows = header.concat(dataRows)
 
     // Create CSV string
     const csvContent = "data:text/csv;charset=utf-8,"
       + '\uFEFF' // UTF-8 BOM for Excel compatibility
-      + rows.map(e => e.map(escapeCsv).join(",")).join("\n");
+      + rows.map(e => e.map(escapeCsv).join(",")).join("\n")
 
     // Create download link and trigger click
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `aymc_hs_data_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+    const encodedUri = encodeURI(csvContent)
+    const link = document.createElement("a")
+    link.setAttribute("href", encodedUri)
+    link.setAttribute("download", `aymc_hs_data_${new Date().toISOString().split('T')[0]}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
 
   // 연간 데이터 계산 (그래프용)
   const yearlyStats = useMemo(() => {
@@ -197,21 +197,21 @@ export default function DataManagement({ data, dailyData, teacherDailyData }) {
         rate: totalStudents > 0 ? ((presentCount / totalStudents) * 100).toFixed(1) : 0
       }
     })
-  }, [selectedYear, selectedMonth, selectedGradeId, data, dailyData, weeksInMonth])
+  }, [selectedGradeId, data, dailyData, weeksInMonth])
 
   // 월 전체 평균 출석률 계산
   const monthlyTotalStats = useMemo(() => {
     if (!statistics || statistics.length === 0) {
-      return { rate: 0 };
+      return { rate: 0 }
     }
 
-    const totalPresent = statistics.reduce((sum, stat) => sum + stat.present, 0);
-    const totalRegistered = statistics.reduce((sum, stat) => sum + stat.total, 0);
+    const totalPresent = statistics.reduce((sum, stat) => sum + stat.present, 0)
+    const totalRegistered = statistics.reduce((sum, stat) => sum + stat.total, 0)
 
-    const rate = totalRegistered > 0 ? ((totalPresent / totalRegistered) * 100).toFixed(1) : 0;
+    const rate = totalRegistered > 0 ? ((totalPresent / totalRegistered) * 100).toFixed(1) : 0
 
-    return { rate };
-  }, [statistics]);
+    return { rate }
+  }, [statistics])
 
   // 차트 렌더링
   const renderChart = () => {

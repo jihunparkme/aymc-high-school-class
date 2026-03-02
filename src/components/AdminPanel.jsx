@@ -12,25 +12,11 @@ export default function AdminPanel({
   data, 
   setData, 
   dailyData, 
-  setDailyData, 
   teacherDailyData, 
-  setTeacherDailyData, 
   onBack, 
   onHome 
 }) {
   const [activeTab, setActiveTab] = useState('attendance') // 기본 탭을 출결로 설정
-
-  const handleDataUpdate = (newData) => {
-    setData(newData)
-  }
-
-  const handleDailyDataUpdate = (newDailyData) => {
-    setDailyData(newDailyData)
-  }
-
-  const handleTeacherDailyDataUpdate = (newTeacherDailyData) => {
-    setTeacherDailyData(newTeacherDailyData)
-  }
 
   return (
     <div className="admin-panel">
@@ -112,22 +98,19 @@ export default function AdminPanel({
           />
         )}
         {activeTab === 'class' && (
-          <ClassManagement data={data} onDataUpdate={handleDataUpdate} />
+          <ClassManagement data={data} onDataUpdate={setData} />
         )}
         {activeTab === 'teacher' && (
-          <TeacherManagement data={data} onDataUpdate={handleDataUpdate} />
+          <TeacherManagement data={data} onDataUpdate={setData} />
         )}
         {activeTab === 'student' && (
-          <StudentManagement data={data} onDataUpdate={handleDataUpdate} />
+          <StudentManagement data={data} onDataUpdate={setData} />
         )}
         {activeTab === 'data' && (
           <DataManagement 
             data={data} 
             dailyData={dailyData} 
             teacherDailyData={teacherDailyData}
-            onDataUpdate={handleDataUpdate} 
-            onDailyDataUpdate={handleDailyDataUpdate} 
-            onTeacherDailyDataUpdate={handleTeacherDailyDataUpdate}
           />
         )}
       </div>
