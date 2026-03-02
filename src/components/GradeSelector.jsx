@@ -6,6 +6,7 @@ export default function GradeSelector({ data, onSelectGrade, onAdminClick, onTea
       case '1': return '🌱'
       case '2': return '🌿'
       case '3': return '🌳'
+      case '4': return '🌟'
       default: return '🏫'
     }
   }
@@ -15,6 +16,7 @@ export default function GradeSelector({ data, onSelectGrade, onAdminClick, onTea
       case '1': return '새로운 시작, 1학년'
       case '2': return '성장하는 믿음, 2학년'
       case '3': return '세상의 빛, 3학년'
+      case '4': return '반가운 만남, 새친구'
       default: return '학생 관리'
     }
   }
