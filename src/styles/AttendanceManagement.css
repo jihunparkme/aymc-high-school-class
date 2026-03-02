@@ -107,9 +107,8 @@
   gap: 8px;
   overflow-x: auto;
   padding-bottom: 8px;
-  margin-bottom: 24px; /* Increased margin for better spacing */
+  margin-bottom: 24px;
   -webkit-overflow-scrolling: touch;
-  justify-content: center;
 }
 
 .filter-chip {
