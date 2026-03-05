@@ -28,7 +28,7 @@ export default function GradeSelector({ data, onSelectGrade, onAdminClick, onTea
           <div className="logo-area">
             <span className="logo-icon">⛪️</span>
           </div>
-          <h1>진리로 예배하는<br/>고등부</h1>
+          <h1>영과 진리로<br/>예배하는<br/>고등부</h1>
           <div className="date-badge">
             {new Date().toLocaleDateString('ko-KR', { 
               year: 'numeric', 
