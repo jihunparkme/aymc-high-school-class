@@ -15,6 +15,11 @@ export default function StudentCard({
           <span className="gender-emoji">
             {student.gender === '남' ? '🙋🏼‍♂️' : '🙋🏻‍♀️'}
           </span>
+          {student.assignedText && (
+            <span>
+              {student.assignedText}
+            </span>
+          )}
         </div>
         <button
           className={`attendance-btn ${dayData?.attendance ? 'present' : 'absent'}`}

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import '../styles/StudentList.css'
-import '../styles/ClassManagement.css'
+import '../styles/ClassManagement.css' // Reusing styles for filter chips
 import StudentCard from './StudentCard'
 import InputModal from './InputModal'
 import useWeekNavigation from '../hooks/useWeekNavigation'
@@ -17,33 +17,60 @@ export default function TeacherList({
   const { weekId, goToPrevWeek, goToNextWeek, goToThisWeek } = useWeekNavigation()
   const [selectedTeacher, setSelectedTeacher] = useState(null)
   const [modalType, setModalType] = useState(null)
-  const [filterType, setFilterType] = useState('all')
-  const [filterGradeId, setFilterGradeId] = useState('all')
+  const [filterType, setFilterType] = useState('all') // 'all' | 'attendance' | 'absent'
+  const [assignmentFilter, setAssignmentFilter] = useState({ type: 'all', id: null }) // { type: 'grade' | 'team' | 'unassigned' | 'all', id: gradeId | teamId }
   const [searchTerm, setSearchTerm] = useState('')
 
   const teachers = data.teachers || []
+  const teams = data.teams || []
+
+  const handleAssignmentFilterClick = (type, id = null) => {
+    if (assignmentFilter.type === type && assignmentFilter.id === id) {
+      setAssignmentFilter({ type: 'all', id: null }) // Toggle off
+    } else {
+      setAssignmentFilter({ type, id })
+    }
+  }
 
   const filteredTeachers = teachers.filter(t => {
     // 0. Name search
     if (searchTerm && !t.name.includes(searchTerm)) return false
 
-    // 1. Grade Filter
-    let gradeMatch = true
-    if (filterGradeId !== 'all') {
-      if (filterGradeId === 'unassigned') {
-        const isAssigned = data.grades.some(grade => 
+    // 1. Assignment Filter (Grade/Team/Unassigned)
+    let assignmentMatch = true
+    switch (assignmentFilter.type) {
+      case 'all':
+        assignmentMatch = true
+        break
+      
+      case 'grade':
+        const grade = data.grades.find(g => g.gradeId === assignmentFilter.id)
+        if (!grade) assignmentMatch = false
+        else {
+          assignmentMatch = grade.classes.some(cls => cls.teacherIds && cls.teacherIds.includes(t.id))
+        }
+        break
+
+      case 'team':
+        if (assignmentFilter.id === 'all_teams') {
+          assignmentMatch = t.teamIds && t.teamIds.length > 0
+        } else {
+          assignmentMatch = t.teamIds && t.teamIds.includes(assignmentFilter.id)
+        }
+        break
+
+      case 'unassigned':
+        const isAssignedToClass = data.grades.some(grade => 
           grade.classes.some(cls => cls.teacherIds && cls.teacherIds.includes(t.id))
         )
-        gradeMatch = !isAssigned
-      } else {
-        const grade = data.grades.find(g => g.gradeId === filterGradeId)
-        if (!grade) gradeMatch = false
-        else {
-          gradeMatch = grade.classes.some(cls => cls.teacherIds && cls.teacherIds.includes(t.id))
-        }
-      }
+        const isAssignedToTeam = t.teamIds && t.teamIds.length > 0
+        assignmentMatch = !isAssignedToClass && !isAssignedToTeam
+        break
+
+      default:
+        assignmentMatch = true
     }
-    if (!gradeMatch) return false
+    if (!assignmentMatch) return false
 
     // 2. Attendance Filter
     if (filterType === 'all') return true
@@ -86,6 +113,10 @@ export default function TeacherList({
     await updateTeacherAttendance(teacherId, weekId, newAttendance)
   }
 
+  const getAssignmentText = (teacher) => {
+    const assignments = [teacher.assignedClasses, teacher.assignedTeams].filter(Boolean).join(', ')
+    return assignments || '없음'
+  }
 
   return (
     <div className="student-list">
@@ -129,30 +160,50 @@ export default function TeacherList({
         />
       </div>
 
-      {/* Grade Filter */}
+      {/* Assignment Filter (Grade/Team) */}
       <div className="filter-container">
         <button
-          onClick={() => setFilterGradeId('all')}
-          className={`filter-chip ${filterGradeId === 'all' ? 'active' : ''}`}
+          onClick={() => handleAssignmentFilterClick('all')}
+          className={`filter-chip ${assignmentFilter.type === 'all' ? 'active' : ''}`}
         >
           전체
         </button>
         {data?.grades?.map(grade => (
           <button
             key={grade.gradeId}
-            onClick={() => setFilterGradeId(grade.gradeId)}
-            className={`filter-chip ${filterGradeId === grade.gradeId ? 'active' : ''}`}
+            onClick={() => handleAssignmentFilterClick('grade', grade.gradeId)}
+            className={`filter-chip ${assignmentFilter.type === 'grade' && assignmentFilter.id === grade.gradeId ? 'active' : ''}`}
           >
             {grade.gradeName}
           </button>
         ))}
         <button
-          onClick={() => setFilterGradeId('unassigned')}
-          className={`filter-chip ${filterGradeId === 'unassigned' ? 'active' : ''}`}
+          onClick={() => handleAssignmentFilterClick('team', 'all_teams')}
+          className={`filter-chip ${assignmentFilter.type === 'team' ? 'active' : ''}`}
+        >
+          기타
+        </button>
+        <button
+          onClick={() => handleAssignmentFilterClick('unassigned')}
+          className={`filter-chip ${assignmentFilter.type === 'unassigned' ? 'active' : ''}`}
         >
           미지정
         </button>
       </div>
+
+      {assignmentFilter.type === 'team' && (
+        <div className="filter-container sub-filter-container">
+          {teams.map(team => (
+            <button
+              key={team.id}
+              onClick={() => handleAssignmentFilterClick('team', team.id)}
+              className={`filter-chip ${assignmentFilter.id === team.id ? 'active' : ''}`}
+            >
+              {team.name}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="filter-buttons">
         <button
@@ -191,7 +242,7 @@ export default function TeacherList({
           return (
             <StudentCard
               key={teacher.id}
-              student={teacher}
+              student={{ ...teacher, assignedText: getAssignmentText(teacher) }} // Pass assignment info
               dayData={dayData}
               onPrayerClick={() => handleOpenModal(teacher, 'prayer')}
               onNotesClick={() => handleOpenModal(teacher, 'notes')}

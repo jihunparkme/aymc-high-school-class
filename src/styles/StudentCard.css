@@ -50,6 +50,7 @@
   font-weight: 600;
   transition: all 0.2s var(--ease-apple);
   min-width: auto;
+  margin-left: auto; /* Push button to the right */
 }
 
 .attendance-btn.present {

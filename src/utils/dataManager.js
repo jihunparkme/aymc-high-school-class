@@ -40,18 +40,40 @@ export const getTodayWeek = () => {
 
 // --- Data Transformation Helpers ---
 
-const transformSchoolData = (grades, classes, students, teachers) => {
+const transformSchoolData = (grades, classes, students, teachers, teams, teacherTeams) => {
+  const teamMap = new Map(teams.map(team => [team.id, team.name]));
+
+  const teacherTeamMap = new Map();
+  teacherTeams.forEach(tt => {
+    if (!teacherTeamMap.has(tt.teacher_id)) {
+      teacherTeamMap.set(tt.teacher_id, []);
+    }
+    const teamName = teamMap.get(tt.team_id);
+    if (teamName) {
+      teacherTeamMap.get(tt.teacher_id).push(teamName);
+    }
+  });
+
   return {
     date: new Date().toISOString().split('T')[0],
+    teams: teams.map(team => ({
+      id: team.id,
+      name: team.name,
+      teacherIds: teacherTeams.filter(tt => tt.team_id === team.id).map(tt => tt.teacher_id)
+    })),
     teachers: teachers.map(t => {
       const assignedClasses = t.class_teachers 
         ? t.class_teachers.map(ct => ct.classes).filter(c => c) 
         : []
+      const assignedTeams = teacherTeamMap.get(t.id) || [];
+      
       return { 
         id: t.id, 
         name: t.name,
-        gender: t.gender, // Added gender
-        assignedClasses: assignedClasses.map(c => c.name).join(', ')
+        gender: t.gender,
+        assignedClasses: assignedClasses.map(c => c.name).join(', '),
+        assignedTeams: assignedTeams.join(', '),
+        teamIds: teams.filter(team => assignedTeams.includes(team.name)).map(team => team.id)
       }
     }),
     grades: grades.map(grade => ({
@@ -117,7 +139,9 @@ export const loadFromSupabase = async () => {
       { data: classes, error: classesError },
       { data: students, error: studentsError },
       { data: weeklyRecords, error: recordsError },
-      { data: teacherWeeklyRecords, error: teacherRecordsError }
+      { data: teacherWeeklyRecords, error: teacherRecordsError },
+      { data: teams, error: teamsError },
+      { data: teacherTeams, error: teacherTeamsError }
     ] = await Promise.all([
       supabase.from('grades').select('*').order('id'),
       supabase.from('teachers').select(`
@@ -139,7 +163,9 @@ export const loadFromSupabase = async () => {
       `).order('id'),
       supabase.from('students').select('*').order('id'),
       supabase.from('weekly_records').select('*'),
-      supabase.from('teacher_weekly_records').select('*')
+      supabase.from('teacher_weekly_records').select('*'),
+      supabase.from('teams').select('*').order('id'),
+      supabase.from('teacher_teams').select('*')
     ])
 
     if (gradesError) throw gradesError
@@ -148,8 +174,10 @@ export const loadFromSupabase = async () => {
     if (studentsError) throw studentsError
     if (recordsError) throw recordsError
     if (teacherRecordsError) throw teacherRecordsError
+    if (teamsError) throw teamsError;
+    if (teacherTeamsError) throw teacherTeamsError;
 
-    const schoolData = transformSchoolData(grades, classes, students, teachers)
+    const schoolData = transformSchoolData(grades, classes, students, teachers, teams, teacherTeams)
     const dailyData = transformDailyData(weeklyRecords)
     const teacherDailyData = transformTeacherDailyData(teacherWeeklyRecords)
 

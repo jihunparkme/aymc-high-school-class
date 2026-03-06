@@ -7,35 +7,46 @@ export default function TeacherManagement({ data, onDataUpdate }) {
   const [modalMode, setModalMode] = useState('add') // 'add' | 'edit'
   const [teacherName, setTeacherName] = useState('')
   const [editingTeacherId, setEditingTeacherId] = useState(null)
-  const [filterGradeId, setFilterGradeId] = useState('all')
+  const [filter, setFilter] = useState({ type: 'all', id: null }) // { type: 'grade' | 'team' | 'unassigned' | 'all', id: gradeId | teamId }
 
   const teachers = data?.teachers || []
+  const teams = data?.teams || []
 
-  const handleFilterClick = (gradeId) => {
-    if (filterGradeId === gradeId) {
-      setFilterGradeId('all')
+  const handleFilterClick = (type, id = null) => {
+    if (filter.type === type && filter.id === id) {
+      setFilter({ type: 'all', id: null }) // Toggle off
     } else {
-      setFilterGradeId(gradeId)
+      setFilter({ type, id })
     }
   }
 
-  // Filter teachers by grade
+  // Filter teachers based on the current filter state
   const filteredTeachers = teachers.filter(teacher => {
-    if (filterGradeId === 'all') return true
+    switch (filter.type) {
+      case 'all':
+        return true
+      
+      case 'grade':
+        const grade = data.grades.find(g => g.gradeId === filter.id)
+        if (!grade) return false
+        return grade.classes.some(cls => cls.teacherIds && cls.teacherIds.includes(teacher.id))
 
-    if (filterGradeId === 'unassigned') {
-      // Check if teacher is NOT assigned to ANY class in ANY grade
-      const isAssigned = data.grades.some(grade => 
-        grade.classes.some(cls => cls.teacherIds && cls.teacherIds.includes(teacher.id))
-      )
-      return !isAssigned
+      case 'team':
+        if (filter.id === 'all_teams') {
+          return teacher.teamIds && teacher.teamIds.length > 0
+        }
+        return teacher.teamIds && teacher.teamIds.includes(filter.id)
+
+      case 'unassigned':
+        const isAssignedToClass = data.grades.some(grade => 
+          grade.classes.some(cls => cls.teacherIds && cls.teacherIds.includes(teacher.id))
+        )
+        const isAssignedToTeam = teacher.teamIds && teacher.teamIds.length > 0
+        return !isAssignedToClass && !isAssignedToTeam
+
+      default:
+        return true
     }
-
-    // Check if teacher is assigned to any class in the selected grade
-    const grade = data.grades.find(g => g.gradeId === filterGradeId)
-    if (!grade) return false
-    
-    return grade.classes.some(cls => cls.teacherIds && cls.teacherIds.includes(teacher.id))
   })
 
   const openAddModal = () => {
@@ -76,7 +87,7 @@ export default function TeacherManagement({ data, onDataUpdate }) {
   }
 
   const handleDelete = async (teacherId) => {
-    if (window.confirm('정말 이 선생님을 삭제하시겠습니까? 담당하고 있는 반 정보에서 선생님 정보가 해제됩니다.')) {
+    if (window.confirm('정말 이 선생님을 삭제하시겠습니까? 담당하고 있는 반 또는 팀 정보에서 선생님 정보가 해제됩니다.')) {
       const success = await removeTeacher(teacherId)
       if (success) {
         const { data: newData } = await loadFromSupabase()
@@ -87,25 +98,50 @@ export default function TeacherManagement({ data, onDataUpdate }) {
     }
   }
 
+  const getAssignmentText = (teacher) => {
+    const assignments = [teacher.assignedClasses, teacher.assignedTeams].filter(Boolean).join(', ')
+    return assignments || '없음'
+  }
+
   return (
-    <div className="class-management"> {/* Reusing class-management layout */}
+    <div className="class-management">
       <div className="filter-container">
         {data?.grades?.map(grade => (
           <button
             key={grade.gradeId}
-            onClick={() => handleFilterClick(grade.gradeId)}
-            className={`filter-chip ${filterGradeId === grade.gradeId ? 'active' : ''}`}
+            onClick={() => handleFilterClick('grade', grade.gradeId)}
+            className={`filter-chip ${filter.type === 'grade' && filter.id === grade.gradeId ? 'active' : ''}`}
           >
             {grade.gradeName}
           </button>
         ))}
         <button
+          onClick={() => handleFilterClick('team', 'all_teams')}
+          className={`filter-chip ${filter.type === 'team' ? 'active' : ''}`}
+        >
+          기타
+        </button>
+        <button
           onClick={() => handleFilterClick('unassigned')}
-          className={`filter-chip ${filterGradeId === 'unassigned' ? 'active' : ''}`}
+          className={`filter-chip ${filter.type === 'unassigned' ? 'active' : ''}`}
         >
           미지정
         </button>
       </div>
+
+      {filter.type === 'team' && (
+        <div className="filter-container sub-filter-container">
+          {teams.map(team => (
+            <button
+              key={team.id}
+              onClick={() => handleFilterClick('team', team.id)}
+              className={`filter-chip ${filter.id === team.id ? 'active' : ''}`}
+            >
+              {team.name}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="grade-card-section">
         <div className="grade-header">
@@ -122,18 +158,16 @@ export default function TeacherManagement({ data, onDataUpdate }) {
           {filteredTeachers.map(teacher => (
             <div key={teacher.id} className="class-item-card">
               <h4>{teacher.name}</h4>
-              {teacher.assignedClasses && (
-                <p style={{ fontSize: '0.85rem', color: '#666', marginTop: '4px' }}>
-                  담당: {teacher.assignedClasses || '없음'}
-                </p>
-              )}
+              <p style={{ fontSize: '0.85rem', color: '#666', marginTop: '4px' }}>
+                담당: {getAssignmentText(teacher)}
+              </p>
               <div className="card-actions">
                 <button onClick={() => openEditModal(teacher)} className="btn-card-edit">✏️</button>
                 <button onClick={() => handleDelete(teacher.id)} className="btn-card-delete">🗑️</button>
               </div>
             </div>
           ))}
-          {filteredTeachers.length === 0 && <p className="empty-text">등록된 교사가 없습니다.</p>}
+          {filteredTeachers.length === 0 && <p className="empty-text">해당 조건의 교사가 없습니다.</p>}
         </div>
       </div>
 
