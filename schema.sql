@@ -166,6 +166,11 @@ INSERT INTO classes (grade_id, name) VALUES
 (2, '1반'), (2, '2반'), (2, '3반'),
 (3, '1반'), (3, '2반'), (3, '3반');
 
+INSERT INTO classes (grade_id, name)
+VALUES (1, '보고싶어요'),
+       (2, '보고싶어요'),
+       (3, '보고싶어요');
+
 -- 4. Insert Class Teachers (Linking)
 INSERT INTO class_teachers (class_id, teacher_id) VALUES
 (1, 1), (1, 10), -- 1-1 김이선생님, 윤선생님 (공동 담임)
@@ -179,6 +184,12 @@ INSERT INTO class_teachers (class_id, teacher_id) VALUES
 (9, 8), -- 3-2 유선생님
 (10, 9), -- 3-3 강선생님
 (10, 12); -- 3-3 임선생님 (공동 담임)
+
+INSERT INTO class_teachers (class_id, teacher_id)
+VALUES (11, 22),
+       (12, 13),
+       (13, 24);
+
 
 -- New: Insert Teams
 INSERT INTO teams (name) VALUES
