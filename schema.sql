@@ -5,6 +5,8 @@ DROP TABLE IF EXISTS classes CASCADE;
 DROP TABLE IF EXISTS grades CASCADE;
 DROP TABLE IF EXISTS class_teachers CASCADE;
 DROP TABLE IF EXISTS teacher_weekly_records CASCADE;
+DROP TABLE IF EXISTS teacher_teams CASCADE;
+DROP TABLE IF EXISTS teams CASCADE;
 
 -- Enable UUID extension (optional, but good practice)
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -74,6 +76,19 @@ CREATE TABLE teacher_weekly_records (
     UNIQUE(teacher_id, week_id)
 );
 
+CREATE TABLE teams (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE teacher_teams (
+    teacher_id INTEGER REFERENCES teachers(id) ON DELETE CASCADE,
+    team_id INTEGER REFERENCES teams(id) ON DELETE CASCADE,
+    PRIMARY KEY (teacher_id, team_id)
+);
+
+
 -- RLS Policies
 ALTER TABLE grades ENABLE ROW LEVEL SECURITY;
 ALTER TABLE teachers ENABLE ROW LEVEL SECURITY;
@@ -82,6 +97,8 @@ ALTER TABLE class_teachers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE students ENABLE ROW LEVEL SECURITY;
 ALTER TABLE weekly_records ENABLE ROW LEVEL SECURITY;
 ALTER TABLE teacher_weekly_records ENABLE ROW LEVEL SECURITY;
+ALTER TABLE teams ENABLE ROW LEVEL SECURITY;
+ALTER TABLE teacher_teams ENABLE ROW LEVEL SECURITY;
 
 -- Public access policies
 CREATE POLICY "Allow public read access on grades" ON grades FOR SELECT USING (true);
@@ -91,6 +108,8 @@ CREATE POLICY "Allow public read access on class_teachers" ON class_teachers FOR
 CREATE POLICY "Allow public read access on students" ON students FOR SELECT USING (true);
 CREATE POLICY "Allow public read access on weekly_records" ON weekly_records FOR SELECT USING (true);
 CREATE POLICY "Allow public read access on teacher_weekly_records" ON teacher_weekly_records FOR SELECT USING (true);
+CREATE POLICY "Allow public read access on teams" ON teams FOR SELECT USING (true);
+CREATE POLICY "Allow public read access on teacher_teams" ON teacher_teams FOR SELECT USING (true);
 
 CREATE POLICY "Allow public insert access on grades" ON grades FOR INSERT WITH CHECK (true);
 CREATE POLICY "Allow public insert access on teachers" ON teachers FOR INSERT WITH CHECK (true);
@@ -99,6 +118,8 @@ CREATE POLICY "Allow public insert access on class_teachers" ON class_teachers F
 CREATE POLICY "Allow public insert access on students" ON students FOR INSERT WITH CHECK (true);
 CREATE POLICY "Allow public insert access on weekly_records" ON weekly_records FOR INSERT WITH CHECK (true);
 CREATE POLICY "Allow public insert access on teacher_weekly_records" ON teacher_weekly_records FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public insert access on teams" ON teams FOR INSERT WITH CHECK (true); -- New RLS
+CREATE POLICY "Allow public insert access on teacher_teams" ON teacher_teams FOR INSERT WITH CHECK (true); -- New RLS
 
 CREATE POLICY "Allow public update access on grades" ON grades FOR UPDATE USING (true);
 CREATE POLICY "Allow public update access on teachers" ON teachers FOR UPDATE USING (true);
@@ -107,6 +128,8 @@ CREATE POLICY "Allow public update access on class_teachers" ON class_teachers F
 CREATE POLICY "Allow public update access on students" ON students FOR UPDATE USING (true);
 CREATE POLICY "Allow public update access on weekly_records" ON weekly_records FOR UPDATE USING (true);
 CREATE POLICY "Allow public update access on teacher_weekly_records" ON teacher_weekly_records FOR UPDATE USING (true);
+CREATE POLICY "Allow public update access on teams" ON teams FOR UPDATE USING (true); -- New RLS
+CREATE POLICY "Allow public update access on teacher_teams" ON teacher_teams FOR UPDATE USING (true); -- New RLS
 
 CREATE POLICY "Allow public delete access on grades" ON grades FOR DELETE USING (true);
 CREATE POLICY "Allow public delete access on teachers" ON teachers FOR DELETE USING (true);
@@ -115,6 +138,8 @@ CREATE POLICY "Allow public delete access on class_teachers" ON class_teachers F
 CREATE POLICY "Allow public delete access on students" ON students FOR DELETE USING (true);
 CREATE POLICY "Allow public delete access on weekly_records" ON weekly_records FOR DELETE USING (true);
 CREATE POLICY "Allow public delete access on teacher_weekly_records" ON teacher_weekly_records FOR DELETE USING (true);
+CREATE POLICY "Allow public delete access on teams" ON teams FOR DELETE USING (true); -- New RLS
+CREATE POLICY "Allow public delete access on teacher_teams" ON teacher_teams FOR DELETE USING (true); -- New RLS
 
 -- --- SAMPLE DATA INSERTION ---
 
@@ -127,6 +152,13 @@ INSERT INTO teachers (name, gender) VALUES
 ('최선생님', '남'), ('한선생님', '여'), ('권선생님', '남'),
 ('조선생님', '여'), ('유선생님', '남'), ('강선생님', '여'), ('윤선생님', '남'),
 ('장선생님', '여'), ('임선생님', '남'), ('오선생님', '여');
+
+-- New: Insert special team teachers
+INSERT INTO teachers (name, gender) VALUES
+('강은신', '여'), ('김연희', '여'), ('명예식', '남'), -- 삼겹줄기도팀
+('김아현', '여'), ('김지애', '여'), ('조희애', '여'), ('최이롭', '남'), -- 임마누엘예배팀
+('이명수', '남'), ('이숙진', '여'), -- 임원
+('김은중', '남'); -- 새가족
 
 -- 3. Insert Classes
 INSERT INTO classes (grade_id, name) VALUES
@@ -147,6 +179,26 @@ INSERT INTO class_teachers (class_id, teacher_id) VALUES
 (9, 8), -- 3-2 유선생님
 (10, 9), -- 3-3 강선생님
 (10, 12); -- 3-3 임선생님 (공동 담임)
+
+-- New: Insert Teams
+INSERT INTO teams (name) VALUES
+('삼겹줄기도팀'),
+('임마누엘예배팀'),
+('임원'),
+('새가족');
+
+-- New: Insert Teacher Teams (Linking special team teachers to teams)
+INSERT INTO teacher_teams (teacher_id, team_id) VALUES
+((SELECT id FROM teachers WHERE name = '강은신'), (SELECT id FROM teams WHERE name = '삼겹줄기도팀')),
+((SELECT id FROM teachers WHERE name = '김연희'), (SELECT id FROM teams WHERE name = '삼겹줄기도팀')),
+((SELECT id FROM teachers WHERE name = '명예식'), (SELECT id FROM teams WHERE name = '삼겹줄기도팀')),
+((SELECT id FROM teachers WHERE name = '김아현'), (SELECT id FROM teams WHERE name = '임마누엘예배팀')),
+((SELECT id FROM teachers WHERE name = '김지애'), (SELECT id FROM teams WHERE name = '임마누엘예배팀')),
+((SELECT id FROM teachers WHERE name = '조희애'), (SELECT id FROM teams WHERE name = '임마누엘예배팀')),
+((SELECT id FROM teachers WHERE name = '최이롭'), (SELECT id FROM teams WHERE name = '임마누엘예배팀')),
+((SELECT id FROM teachers WHERE name = '이명수'), (SELECT id FROM teams WHERE name = '임원')),
+((SELECT id FROM teachers WHERE name = '이숙진'), (SELECT id FROM teams WHERE name = '임원')),
+((SELECT id FROM teachers WHERE name = '김은중'), (SELECT id FROM teams WHERE name = '새가족'));
 
 -- 5. Insert Students
 INSERT INTO students (class_id, name, gender) VALUES
