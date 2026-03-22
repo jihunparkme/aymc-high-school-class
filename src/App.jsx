@@ -5,6 +5,7 @@ import ClassSelector from './components/ClassSelector'
 import StudentList from './components/StudentList'
 import TeacherList from './components/TeacherList'
 import AdminPanel from './components/AdminPanel'
+import AdminPasswordModal from './components/AdminPasswordModal'
 import ScrollToTopButton from './components/ScrollToTopButton'
 import { loadFromSupabase } from './utils/dataManager'
 
@@ -16,6 +17,7 @@ function App() {
   const [selectedGrade, setSelectedGrade] = useState(null)
   const [selectedClass, setSelectedClass] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [showPasswordModal, setShowPasswordModal] = useState(false)
 
   // 초기 데이터 로드
   useEffect(() => {
@@ -86,7 +88,7 @@ function App() {
           onSelectGrade={(grade) => {
             navigateTo('classSelect', grade, null)
           }}
-          onAdminClick={() => navigateTo('admin', null, null)}
+          onAdminClick={() => setShowPasswordModal(true)}
           onTeacherClick={() => navigateTo('teacherList', null, null)}
         />
       )}
@@ -134,6 +136,16 @@ function App() {
           teacherDailyData={teacherDailyData}
           onBack={goBack}
           onHome={goHome}
+        />
+      )}
+
+      {showPasswordModal && (
+        <AdminPasswordModal
+          onSuccess={() => {
+            setShowPasswordModal(false)
+            navigateTo('admin', null, null)
+          }}
+          onClose={() => setShowPasswordModal(false)}
         />
       )}
       
