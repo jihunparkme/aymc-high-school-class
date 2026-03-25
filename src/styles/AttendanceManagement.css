@@ -134,3 +134,154 @@
   border-color: var(--accent-color);
   box-shadow: 0 2px 8px rgba(0, 113, 227, 0.3);
 }
+
+/* 모달 관련 스타일 - iOS 스타일 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.3);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal-content {
+  background-color: #fff;
+  border-radius: 16px;
+  padding: 0;
+  max-width: 300px;
+  width: 90%;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.16);
+  animation: slideInScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  overflow: hidden;
+}
+
+@keyframes slideInScale {
+  from {
+    transform: scale(0.92) translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-header {
+  padding: 24px 20px 12px;
+  text-align: center;
+  background-color: #fff;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #000;
+  letter-spacing: -0.4px;
+}
+
+.modal-body {
+  padding: 12px 20px 24px;
+  text-align: center;
+}
+
+.modal-body p {
+  margin: 0 0 12px 0;
+  font-size: 15px;
+  color: #333;
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+.modal-body p:last-child {
+  margin-bottom: 0;
+}
+
+.status-info {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px !important;
+  font-size: 13px;
+  color: #666;
+}
+
+.status-present {
+  color: #34c759;
+  font-weight: 600;
+  padding: 3px 8px;
+  background-color: rgba(52, 199, 89, 0.1);
+  border-radius: 6px;
+}
+
+.status-absent {
+  color: #ff3b30;
+  font-weight: 600;
+  padding: 3px 8px;
+  background-color: rgba(255, 59, 48, 0.1);
+  border-radius: 6px;
+}
+
+.modal-buttons {
+  display: flex;
+  border-top: 1px solid #e5e5e5;
+}
+
+.btn-yes,
+.btn-no {
+  flex: 1;
+  padding: 14px 16px;
+  border: none;
+  background-color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+}
+
+.btn-yes {
+  color: #0071e3;
+  border-right: 1px solid #e5e5e5;
+}
+
+.btn-yes:active {
+  background-color: #f2f2f7;
+}
+
+.btn-no {
+  color: #0071e3;
+}
+
+.btn-no:active {
+  background-color: #f2f2f7;
+}
+
+/* 학생 태그를 클릭 가능하게 표시 */
+.student-tag {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.student-tag:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+

@@ -133,7 +133,9 @@ function App() {
           data={data}
           setData={setData}
           dailyData={dailyData}
+          setDailyData={setDailyData}
           teacherDailyData={teacherDailyData}
+          setTeacherDailyData={setTeacherDailyData}
           onBack={goBack}
           onHome={goHome}
         />

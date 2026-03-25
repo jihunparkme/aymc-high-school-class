@@ -1,10 +1,19 @@
 import { useState } from 'react'
 import useWeekNavigation from '../hooks/useWeekNavigation'
+import { updateAttendance, updateTeacherAttendance } from '../utils/dataManager'
 import '../styles/AttendanceManagement.css'
 
-export default function AttendanceManagement({ data, dailyData, teacherDailyData }) {
+export default function AttendanceManagement({ data, dailyData, setDailyData, teacherDailyData, setTeacherDailyData }) {
   const { weekId, goToPrevWeek, goToNextWeek, goToThisWeek } = useWeekNavigation()
   const [selectedGradeId, setSelectedGradeId] = useState('all') // 'all', 'teachers', 또는 특정 gradeId
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    studentId: null,
+    studentName: null,
+    currentStatus: null,
+    newStatus: null,
+    isTeacher: false
+  })
 
   const handleFilterClick = (gradeId) => {
     // 이미 선택된 필터를 다시 클릭하면 'all'로 설정 (선택 해제)
@@ -13,6 +22,72 @@ export default function AttendanceManagement({ data, dailyData, teacherDailyData
     } else {
       setSelectedGradeId(gradeId)
     }
+  }
+
+  // 학생 이름 클릭 핸들러
+  const handleStudentClick = (studentId, studentName, currentStatus) => {
+    const newStatus = !currentStatus // 토글
+    setConfirmModal({
+      isOpen: true,
+      studentId,
+      studentName,
+      currentStatus,
+      newStatus,
+      isTeacher: false
+    })
+  }
+
+  // 교사 이름 클릭 핸들러
+  const handleTeacherClick = (teacherId, teacherName, currentStatus) => {
+    const newStatus = !currentStatus
+    setConfirmModal({
+      isOpen: true,
+      studentId: teacherId,
+      studentName: teacherName,
+      currentStatus,
+      newStatus,
+      isTeacher: true
+    })
+  }
+
+  // 확인 버튼 클릭
+  const handleConfirmYes = async () => {
+    const { studentId, newStatus, isTeacher } = confirmModal
+    
+    if (isTeacher) {
+      await updateTeacherAttendance(studentId, weekId, newStatus)
+      // 교사 데이터 업데이트
+      setTeacherDailyData(prev => ({
+        ...prev,
+        [studentId]: {
+          ...prev[studentId],
+          [weekId]: {
+            ...prev[studentId]?.[weekId],
+            attendance: newStatus
+          }
+        }
+      }))
+    } else {
+      await updateAttendance(studentId, weekId, newStatus)
+      // 학생 데이터 업데이트
+      setDailyData(prev => ({
+        ...prev,
+        [studentId]: {
+          ...prev[studentId],
+          [weekId]: {
+            ...prev[studentId]?.[weekId],
+            attendance: newStatus
+          }
+        }
+      }))
+    }
+    
+    setConfirmModal({ ...confirmModal, isOpen: false })
+  }
+
+  // 취소 버튼 클릭
+  const handleConfirmNo = () => {
+    setConfirmModal({ ...confirmModal, isOpen: false })
   }
 
   const filteredGrades = selectedGradeId === 'all' 
@@ -69,7 +144,12 @@ export default function AttendanceManagement({ data, dailyData, teacherDailyData
                   {classItem.students.map(student => {
                     const isPresent = dailyData[student.studentId]?.[weekId]?.attendance
                     return (
-                      <div key={student.studentId} className={`student-tag ${isPresent ? 'present' : 'absent'}`}>
+                      <div 
+                        key={student.studentId} 
+                        className={`student-tag ${isPresent ? 'present' : 'absent'}`}
+                        onClick={() => handleStudentClick(student.studentId, student.name, isPresent)}
+                        style={{ cursor: 'pointer' }}
+                      >
                         {student.name}
                       </div>
                     )
@@ -98,7 +178,12 @@ export default function AttendanceManagement({ data, dailyData, teacherDailyData
                     {teachers.map(teacher => {
                       const isPresent = teacherDailyData?.[teacher.id]?.[weekId]?.attendance
                       return (
-                        <div key={teacher.id} className={`student-tag ${isPresent ? 'present' : 'absent'}`}>
+                        <div 
+                          key={teacher.id} 
+                          className={`student-tag ${isPresent ? 'present' : 'absent'}`}
+                          onClick={() => handleTeacherClick(teacher.id, teacher.name, isPresent)}
+                          style={{ cursor: 'pointer' }}
+                        >
                           {teacher.name}
                         </div>
                       )
@@ -110,6 +195,44 @@ export default function AttendanceManagement({ data, dailyData, teacherDailyData
           </div>
         </div>
       )}
+
+      {/* 출결 상태 변경 확인 모달 */}
+      {confirmModal.isOpen && (
+        <ConfirmAttendanceModal
+          studentName={confirmModal.studentName}
+          currentStatus={confirmModal.currentStatus}
+          newStatus={confirmModal.newStatus}
+          onConfirm={handleConfirmYes}
+          onCancel={handleConfirmNo}
+        />
+      )}
+    </div>
+  )
+}
+
+// 출결 상태 변경 확인 모달 컴포넌트
+function ConfirmAttendanceModal({ studentName, currentStatus, newStatus, onConfirm, onCancel }) {
+  const currentStatusText = currentStatus ? '출석' : '결석'
+  const newStatusText = newStatus ? '출석' : '결석'
+
+  return (
+    <div className="modal-overlay" onClick={onCancel}>
+      <div className="modal-content" onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2>출결 상태 변경</h2>
+        </div>
+        <div className="modal-body">
+          <p>{studentName}의 출결 상태를 {newStatusText}으로 변경하시겠습니까?</p>
+          <p className="status-info">
+            현재: <span className={currentStatus ? 'status-present' : 'status-absent'}>{currentStatusText}</span> 
+            → <span className={newStatus ? 'status-present' : 'status-absent'}>{newStatusText}</span>
+          </p>
+        </div>
+        <div className="modal-buttons">
+          <button className="btn-yes" onClick={onConfirm}>예</button>
+          <button className="btn-no" onClick={onCancel}>아니오</button>
+        </div>
+      </div>
     </div>
   )
 }

@@ -12,7 +12,9 @@ export default function AdminPanel({
   data, 
   setData, 
   dailyData, 
-  teacherDailyData, 
+  setDailyData,
+  teacherDailyData,
+  setTeacherDailyData,
   onBack, 
   onHome 
 }) {
@@ -79,8 +81,10 @@ export default function AdminPanel({
         {activeTab === 'attendance' && (
           <AttendanceManagement 
             data={data} 
-            dailyData={dailyData} 
-            teacherDailyData={teacherDailyData} 
+            dailyData={dailyData}
+            setDailyData={setDailyData}
+            teacherDailyData={teacherDailyData}
+            setTeacherDailyData={setTeacherDailyData}
           />
         )}
         {activeTab === 'prayer' && (
