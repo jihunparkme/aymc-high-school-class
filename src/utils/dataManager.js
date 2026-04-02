@@ -3,36 +3,119 @@ import { supabase } from './supabaseClient'
 // --- Date Helper Functions ---
 
 export const getWeekOfMonth = (date) => {
-  const firstDay = new Date(date.getFullYear(), date.getMonth(), 1).getDay()
-  return Math.ceil((date.getDate() + firstDay) / 7)
+  const year = date.getFullYear()
+  const month = date.getMonth()
+  
+  // 해당 월의 첫 날과 마지막 날
+  const firstDayOfMonth = new Date(year, month, 1)
+  const lastDayOfMonth = new Date(year, month + 1, 0)
+  
+  // 이 달에 속한 모든 일요일 찾기
+  const sundays = []
+  for (let d = new Date(firstDayOfMonth); d <= lastDayOfMonth; d.setDate(d.getDate() + 1)) {
+    if (d.getDay() === 0) { // 0은 일요일
+      sundays.push(new Date(d).getDate())
+    }
+  }
+  
+  // 주어진 날짜가 속한 주의 일요일 찾기
+  const dayOfWeek = date.getDay()
+  const daysUntilSunday = dayOfWeek === 0 ? 0 : 7 - dayOfWeek
+  
+  // 일요일 날짜를 계산 (월을 넘어갈 수 있으므로 Date 객체로 계산)
+  const sundayDate = new Date(date)
+  sundayDate.setDate(sundayDate.getDate() + daysUntilSunday)
+  
+  // 계산된 일요일이 같은 달에 속하는지 확인
+  if (sundayDate.getMonth() === month) {
+    // 같은 달이면 몇 번째 일요일인지 찾기
+    const weekNumber = sundays.findIndex(sunday => sunday === sundayDate.getDate()) + 1
+    return weekNumber > 0 ? weekNumber : 1
+  } else if (sundayDate.getMonth() > month) {
+    // 다음 달로 넘어가면 이 달의 마지막 주 반환
+    return sundays.length
+  } else {
+    // 이전 달로 돌아가면 첫 번째 주 반환
+    return 1
+  }
 }
 
 export const getWeekId = (date) => {
-  const year = date.getFullYear()
-  const month = date.getMonth() + 1
-  const week = getWeekOfMonth(date)
+  // 해당 주의 일요일을 찾아서, 일요일이 속한 월 기준으로 주차를 결정
+  const dayOfWeek = date.getDay()
+  const daysUntilSunday = dayOfWeek === 0 ? 0 : 7 - dayOfWeek
+  const sunday = new Date(date)
+  sunday.setDate(sunday.getDate() + daysUntilSunday)
+
+  const year = sunday.getFullYear()
+  const month = sunday.getMonth() + 1
+  const week = getWeekOfMonth(sunday)
   return `${year}년 ${String(month).padStart(2, '0')}월 ${week}주차`
 }
 
 export const getWeekStartDateFromId = (weekId) => {
   const [year, month, week] = weekId.replace('년', '').replace('월', '').replace('주차', '').split(' ').map(Number)
+  
+  // 해당 월의 모든 일요일 찾기
   const firstDayOfMonth = new Date(year, month - 1, 1)
-  const firstDayOfWeek = firstDayOfMonth.getDay()
-  const dayOffset = (week - 1) * 7 - firstDayOfWeek
-  return new Date(year, month - 1, 1 + dayOffset)
+  const lastDayOfMonth = new Date(year, month, 0)
+  
+  const sundays = []
+  for (let d = new Date(firstDayOfMonth); d <= lastDayOfMonth; d.setDate(d.getDate() + 1)) {
+    if (d.getDay() === 0) {
+      sundays.push(d.getDate())
+    }
+  }
+  
+  // week번째 일요일 찾기 (week는 1부터 시작)
+  if (week <= 0 || week > sundays.length) {
+    return firstDayOfMonth // 범위 밖이면 월 첫날 반환
+  }
+  
+  const sundayDate = sundays[week - 1]
+  const sunday = new Date(year, month - 1, sundayDate)
+  
+  // 그 주의 월요일(일요일 - 6일)
+  const monday = new Date(sunday)
+  monday.setDate(monday.getDate() - 6)
+  
+  return monday
 }
 
+// 현재 날짜가 속한 주의 시작일(월요일)과 종료일(일요일)을 반환
+export const getWeekBoundaries = (date) => {
+  const dayOfWeek = date.getDay();
+  
+  // 주어진 날짜가 속한 주의 일요일 찾기 (0=일, 1=월, ..., 6=토)
+  const daysUntilSunday = dayOfWeek === 0 ? 0 : 7 - dayOfWeek;
+  const sunday = new Date(date);
+  sunday.setDate(sunday.getDate() + daysUntilSunday);
+  
+  // 월요일은 일요일 - 6일
+  const monday = new Date(sunday);
+  monday.setDate(monday.getDate() - 6);
+  
+  return {
+    start: monday,
+    end: sunday,
+  };
+};
+
+// 현재 주의 마지막 날 다음 날로 이동 → 월 경계에서 주차를 정확히 건너뜀
 export const getNextWeek = (date) => {
-  const d = new Date(date)
-  d.setDate(d.getDate() + 7)
-  return d
-}
+  const { end } = getWeekBoundaries(date);
+  const next = new Date(end);
+  next.setDate(next.getDate() + 1);
+  return next;
+};
 
+// 현재 주의 첫 날 이전 날로 이동 → 월 경계에서 주차를 정확히 건너뜀
 export const getPreviousWeek = (date) => {
-  const d = new Date(date)
-  d.setDate(d.getDate() - 7)
-  return d
-}
+  const { start } = getWeekBoundaries(date);
+  const prev = new Date(start);
+  prev.setDate(prev.getDate() - 1);
+  return prev;
+};
 
 export const getTodayWeek = () => {
   return new Date()
