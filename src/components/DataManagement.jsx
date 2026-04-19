@@ -38,7 +38,7 @@ export default function DataManagement({ data, dailyData, teacherDailyData }) {
               `${grade.gradeName}/${classItem.className}`,
               student.name,
               record.attendance ? '출석' : '결석',
-              record.prayerRequests?.join('\n') || '',
+              record.prayerRequests || '',
               record.notes || ''
             ])
           })
@@ -57,7 +57,7 @@ export default function DataManagement({ data, dailyData, teacherDailyData }) {
             '교사', // For sorting purposes
             teacher.name,
             record.attendance ? '출석' : '결석',
-            record.prayerRequests?.join('\n') || '',
+            record.prayerRequests || '',
             record.notes || ''
           ])
         })

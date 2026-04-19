@@ -47,7 +47,7 @@ export default function StudentList({
     handleCloseModal()
 
     if (type === 'prayer') {
-      setDailyData(applyOptimisticUpdate(dailyData, id, weekId, w => { w.prayerRequests = [content] }))
+      setDailyData(applyOptimisticUpdate(dailyData, id, weekId, w => { w.prayerRequests = content }))
       await addPrayerRequest(id, weekId, content)
     } else if (type === 'notes') {
       setDailyData(applyOptimisticUpdate(dailyData, id, weekId, w => { w.notes = content }))
@@ -125,7 +125,7 @@ export default function StudentList({
       <div className="students-container">
         {filteredStudents.map(student => {
           const dayData = dailyData[student.studentId]?.[weekId] || {
-            prayerRequests: [],
+            prayerRequests: '',
             notes: '',
             attendance: false
           }
@@ -148,7 +148,7 @@ export default function StudentList({
           student={selectedStudent}
           modalType={modalType}
           currentContent={selectedStudent && modalType === 'prayer' 
-            ? (dailyData[selectedStudent.studentId]?.[weekId]?.prayerRequests?.[0] || '')
+            ? (dailyData[selectedStudent.studentId]?.[weekId]?.prayerRequests || '')
             : (dailyData[selectedStudent.studentId]?.[weekId]?.notes || '')}
           onClose={handleCloseModal}
           onSave={handleSave}

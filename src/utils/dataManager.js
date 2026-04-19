@@ -196,14 +196,12 @@ const transformWeeklyData = (records, idField) => {
       result[idStr] = {}
     }
     
-    // Treat prayer_requests as a single text block; line breaks are content, not item separators.
     const prayerText = typeof record.prayer_requests === 'string' ? record.prayer_requests.trim() : ''
-    const prayerRequestsArray = prayerText ? [prayerText] : []
 
     result[idStr][record.week_id] = {
       attendance: record.attendance,
       notes: record.notes || '',
-      prayerRequests: prayerRequestsArray
+      prayerRequests: prayerText
     }
   })
   return result

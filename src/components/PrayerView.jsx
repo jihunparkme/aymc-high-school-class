@@ -2,7 +2,7 @@ import WeeklyListView from './WeeklyListView'
 
 const extractPrayers = (weekData) => {
   if (weekData.prayerRequests && weekData.prayerRequests.length > 0) {
-    return weekData.prayerRequests
+    return [weekData.prayerRequests]
   }
   return []
 }

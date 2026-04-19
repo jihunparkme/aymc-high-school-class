@@ -1,5 +1,5 @@
 const DEFAULT_WEEK_DATA = () => ({
-  prayerRequests: [],
+  prayerRequests: '',
   notes: '',
   attendance: false
 })

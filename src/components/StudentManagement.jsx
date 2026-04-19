@@ -23,7 +23,7 @@ export default function StudentManagement({ data, onDataUpdate }) {
     const newStudent = {
       name: newStudentName,
       gender: newStudentGender,
-      prayerRequests: [],
+      prayerRequests: '',
       notes: '',
       attendance: true
     }
@@ -39,7 +39,7 @@ export default function StudentManagement({ data, onDataUpdate }) {
         studentId: String(createdStudent.id),
         name: createdStudent.name,
         gender: createdStudent.gender,
-        prayerRequests: [],
+        prayerRequests: '',
         notes: '',
         attendance: false
       }
