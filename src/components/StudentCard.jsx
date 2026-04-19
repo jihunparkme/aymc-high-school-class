@@ -7,6 +7,16 @@ export default function StudentCard({
   onNotesClick, 
   onAttendanceClick
 }) {
+  const handleAttendanceClick = () => {
+    const nextAttendanceText = dayData?.attendance ? '결석' : '출석'
+
+    if (!window.confirm(`'${student.name}'을 '${nextAttendanceText}'으로 변경할까요?`)) {
+      return
+    }
+
+    onAttendanceClick()
+  }
+
   return (
     <div className={`student-card ${dayData?.attendance ? '' : 'absent'}`}>
       <div className="student-header">
@@ -23,7 +33,7 @@ export default function StudentCard({
         </div>
         <button
           className={`attendance-btn ${dayData?.attendance ? 'present' : 'absent'}`}
-          onClick={onAttendanceClick}
+          onClick={handleAttendanceClick}
           title={dayData?.attendance ? '출석' : '부재'}
         >
           {dayData?.attendance ? '출석' : '결석'}
@@ -44,6 +54,7 @@ export default function StudentCard({
           📝 특이사항 {dayData?.notes ? '✓' : ''}
         </button>
       </div>
+
     </div>
   )
 }
