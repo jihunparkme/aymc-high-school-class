@@ -98,7 +98,7 @@ export default function TeacherList({
     handleCloseModal()
 
     if (type === 'prayer') {
-      setTeacherDailyData(applyOptimisticUpdate(teacherDailyData, id, weekId, w => w.prayerRequests.push(content)))
+      setTeacherDailyData(applyOptimisticUpdate(teacherDailyData, id, weekId, w => { w.prayerRequests = [content] }))
       await addTeacherPrayerRequest(id, weekId, content)
     } else if (type === 'notes') {
       setTeacherDailyData(applyOptimisticUpdate(teacherDailyData, id, weekId, w => { w.notes = content }))
@@ -254,10 +254,11 @@ export default function TeacherList({
 
       {modalType && selectedTeacher && (
         <InputModal
+          key={`${selectedTeacher.id}-${modalType}-${weekId}`}
           student={selectedTeacher}
           modalType={modalType}
           currentContent={selectedTeacher && modalType === 'prayer' 
-            ? (teacherDailyData[selectedTeacher.id]?.[weekId]?.prayerRequests || [])
+            ? (teacherDailyData[selectedTeacher.id]?.[weekId]?.prayerRequests?.[0] || '')
             : (teacherDailyData[selectedTeacher.id]?.[weekId]?.notes || '')}
           onClose={handleCloseModal}
           onSave={handleSave}

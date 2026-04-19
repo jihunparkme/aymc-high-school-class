@@ -1,35 +1,20 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import '../styles/InputModal.css'
 
 export default function InputModal({ student, modalType, currentContent, onClose, onSave }) {
-  const [input, setInput] = useState(modalType === 'notes' && typeof currentContent === 'string' ? currentContent : '')
+  const [input, setInput] = useState(typeof currentContent === 'string' ? currentContent : '')
 
-  useEffect(() => {
-    if (modalType === 'notes' && typeof currentContent === 'string') {
-      setInput(currentContent)
-    } else {
-      setInput('')
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentContent])
 
   const handleSubmit = () => {
     if (input.trim()) {
       onSave(input.trim())
-      if (modalType === 'prayer') {
-        setInput('')
-      }
     }
   }
 
-  const title = modalType === 'prayer' ? '기도제목 추가' : '특이사항 입력'
+  const title = modalType === 'prayer' ? '기도제목 입력' : '특이사항 입력'
   const placeholder = modalType === 'prayer' 
-    ? '기도해주실 내용을 입력하세요...'
+    ? '기도제목을 입력하세요...'
     : '특이사항을 입력하세요...'
-
-  const prayerList = modalType === 'prayer' && Array.isArray(currentContent) && currentContent.length > 0 
-    ? currentContent 
-    : []
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -41,17 +26,7 @@ export default function InputModal({ student, modalType, currentContent, onClose
 
         <div className="modal-body">
           <p className="student-name">{student.name}</p>
-          
-          {prayerList.length > 0 && (
-            <div className="existing-items">
-              <h4>기도제목 목록</h4>
-              <ul>
-                {prayerList.map((prayer, idx) => (
-                  <li key={idx}>{prayer}</li>
-                ))}
-              </ul>
-            </div>
-          )}
+
 
           <textarea
             value={input}

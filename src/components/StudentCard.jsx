@@ -45,7 +45,7 @@ export default function StudentCard({
           className={`action-btn prayer-btn ${dayData?.prayerRequests?.length > 0 ? 'active' : ''}`}
           onClick={onPrayerClick}
         >
-          📖 기도제목 ({dayData?.prayerRequests?.length || 0})
+          📖 기도제목 {dayData?.prayerRequests?.length > 0 ? '✓' : ''}
         </button>
         <button 
           className={`action-btn notes-btn ${dayData?.notes ? 'active' : ''}`}

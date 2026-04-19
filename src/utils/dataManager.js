@@ -196,9 +196,9 @@ const transformWeeklyData = (records, idField) => {
       result[idStr] = {}
     }
     
-    const prayerRequestsArray = record.prayer_requests 
-      ? record.prayer_requests.split('\n').filter(p => p.trim() !== '') 
-      : []
+    // Treat prayer_requests as a single text block; line breaks are content, not item separators.
+    const prayerText = typeof record.prayer_requests === 'string' ? record.prayer_requests.trim() : ''
+    const prayerRequestsArray = prayerText ? [prayerText] : []
 
     result[idStr][record.week_id] = {
       attendance: record.attendance,
@@ -292,39 +292,8 @@ const upsertRecord = async (table, idField, id, weekId, data, errorMsg) => {
   }
 }
 
-const upsertPrayerRequest = async (table, idField, id, weekId, content, errorMsg) => {
-  try {
-    const { data: currentRecord } = await supabase
-      .from(table)
-      .select('prayer_requests')
-      .eq(idField, parseInt(id))
-      .eq('week_id', weekId)
-      .maybeSingle()
-
-    let currentRequestsText = ''
-    if (currentRecord && currentRecord.prayer_requests) {
-      currentRequestsText = currentRecord.prayer_requests
-    }
-
-    const newRequestsText = currentRequestsText 
-      ? `${currentRequestsText}\n${content}` 
-      : content
-
-    const { error } = await supabase
-      .from(table)
-      .upsert({
-        [idField]: parseInt(id),
-        week_id: weekId,
-        prayer_requests: newRequestsText
-      }, { onConflict: `${idField}, week_id` })
-
-    if (error) throw error
-    return true
-  } catch (error) {
-    console.error(errorMsg, error)
-    return false
-  }
-}
+const upsertPrayerRequest = (table, idField, id, weekId, content, errorMsg) =>
+  upsertRecord(table, idField, id, weekId, { prayer_requests: content }, errorMsg)
 
 // Student record functions
 export const updateAttendance = (studentId, weekId, attendance) =>

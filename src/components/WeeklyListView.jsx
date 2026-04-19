@@ -15,6 +15,7 @@ import '../styles/PrayerView.css'
 export default function WeeklyListView({
   data, dailyData, teacherDailyData,
   title, emptyMessage, countLabel, itemClassName,
+  showCount = true,
   extractItems
 }) {
   const { weekId, goToPrevWeek, goToNextWeek, goToThisWeek } = useWeekNavigation()
@@ -104,7 +105,7 @@ export default function WeeklyListView({
         />
       </div>
 
-      <h3>{countLabel} ({filteredItems.length}개)</h3>
+      {showCount && <h3>{countLabel} ({filteredItems.length}개)</h3>}
       
       {filteredItems.length === 0 ? (
         <p className="empty-message">
