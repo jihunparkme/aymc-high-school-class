@@ -41,11 +41,10 @@ export const getWeekOfMonth = (date) => {
 }
 
 export const getWeekId = (date) => {
-  // 해당 주의 일요일을 찾아서, 일요일이 속한 월 기준으로 주차를 결정
+  // 해당 주의 일요일(주 시작)을 찾아서, 일요일이 속한 월 기준으로 주차를 결정
   const dayOfWeek = date.getDay()
-  const daysUntilSunday = dayOfWeek === 0 ? 0 : 7 - dayOfWeek
   const sunday = new Date(date)
-  sunday.setDate(sunday.getDate() + daysUntilSunday)
+  sunday.setDate(sunday.getDate() - dayOfWeek)
 
   const year = sunday.getFullYear()
   const month = sunday.getMonth() + 1
@@ -75,29 +74,25 @@ export const getWeekStartDateFromId = (weekId) => {
   const sundayDate = sundays[week - 1]
   const sunday = new Date(year, month - 1, sundayDate)
   
-  // 그 주의 월요일(일요일 - 6일)
-  const monday = new Date(sunday)
-  monday.setDate(monday.getDate() - 6)
-  
-  return monday
+  // 일요일이 주의 시작이므로 그대로 반환
+  return sunday
 }
 
-// 현재 날짜가 속한 주의 시작일(월요일)과 종료일(일요일)을 반환
+// 현재 날짜가 속한 주의 시작일(일요일)과 종료일(토요일)을 반환
 export const getWeekBoundaries = (date) => {
   const dayOfWeek = date.getDay();
   
   // 주어진 날짜가 속한 주의 일요일 찾기 (0=일, 1=월, ..., 6=토)
-  const daysUntilSunday = dayOfWeek === 0 ? 0 : 7 - dayOfWeek;
   const sunday = new Date(date);
-  sunday.setDate(sunday.getDate() + daysUntilSunday);
+  sunday.setDate(sunday.getDate() - dayOfWeek);
   
-  // 월요일은 일요일 - 6일
-  const monday = new Date(sunday);
-  monday.setDate(monday.getDate() - 6);
+  // 토요일은 일요일 + 6일
+  const saturday = new Date(sunday);
+  saturday.setDate(saturday.getDate() + 6);
   
   return {
-    start: monday,
-    end: sunday,
+    start: sunday,
+    end: saturday,
   };
 };
 
