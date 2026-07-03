@@ -14,7 +14,8 @@ export default function TeacherList({
   onBack,
   onHome
 }) {
-  const { weekId, goToPrevWeek, goToNextWeek, goToThisWeek } = useWeekNavigation()
+  const { weekId, weekDateRange, goToPrevWeek, goToNextWeek, goToThisWeek } = useWeekNavigation()
+
   const [selectedTeacher, setSelectedTeacher] = useState(null)
   const [modalType, setModalType] = useState(null)
   const [filterType, setFilterType] = useState('all') // 'all' | 'attendance' | 'absent'
@@ -141,7 +142,10 @@ export default function TeacherList({
       <div className="date-selector-container">
         <div className="week-navigation">
           <button className="week-btn" onClick={goToPrevWeek}>← 이전 주</button>
-          <span className="week-range">{weekId}</span>
+          <span className="week-range">
+            {weekId}
+            <span className="week-date-range">{weekDateRange}</span>
+          </span>
           <button className="week-btn" onClick={goToNextWeek}>다음 주 →</button>
         </div>
         

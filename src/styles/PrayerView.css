@@ -18,13 +18,23 @@
 }
 
 .week-info {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
     font-size: 0.95rem;
     color: var(--text-secondary);
-    display: inline-block;
     padding: 6px 16px;
     background-color: var(--bg-color);
     border-radius: 20px;
     font-weight: 500;
+}
+
+.week-date-range {
+    font-size: 0.78rem;
+    font-weight: 400;
+    color: var(--text-secondary);
+    opacity: 0.8;
 }
 
 .date-navigation {

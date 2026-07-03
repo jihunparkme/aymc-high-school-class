@@ -29,7 +29,8 @@ export default function WeeklyListView({
   showCount = true,
   extractItems
 }) {
-  const { weekId, goToPrevWeek, goToNextWeek, goToThisWeek } = useWeekNavigation()
+  const { weekId, weekDateRange, goToPrevWeek, goToNextWeek, goToThisWeek } = useWeekNavigation()
+
   const [searchTerm, setSearchTerm] = useState('')
 
   const allItems = []
@@ -99,7 +100,10 @@ export default function WeeklyListView({
     <div className="prayer-view">
       <div className="prayer-header-section">
         <h2>{title}</h2>
-        <div className="week-info">{weekId}</div>
+        <div className="week-info">
+          {weekId}
+          <span className="week-date-range">{weekDateRange}</span>
+        </div>
       </div>
 
       <div className="date-navigation">

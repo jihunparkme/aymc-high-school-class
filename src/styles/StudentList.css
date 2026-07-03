@@ -98,10 +98,20 @@
 }
 
 .week-range {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
   font-size: clamp(0.9rem, 3vw, 1.1rem);
   font-weight: 600;
   color: var(--text-primary);
   white-space: nowrap;
+}
+
+.week-date-range {
+  font-size: clamp(0.9rem, 2.5vw, 0.85rem);
+  font-weight: 400;
+  color: var(--text-secondary);
 }
 
 .week-btn {

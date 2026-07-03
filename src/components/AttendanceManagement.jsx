@@ -4,7 +4,8 @@ import { updateAttendance, updateTeacherAttendance } from '../utils/dataManager'
 import '../styles/AttendanceManagement.css'
 
 export default function AttendanceManagement({ data, dailyData, setDailyData, teacherDailyData, setTeacherDailyData }) {
-  const { weekId, goToPrevWeek, goToNextWeek, goToThisWeek } = useWeekNavigation()
+  const { weekId, weekDateRange, goToPrevWeek, goToNextWeek, goToThisWeek } = useWeekNavigation()
+
   const [selectedGradeId, setSelectedGradeId] = useState('all') // 'all', 'teachers', 또는 특정 gradeId
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
@@ -102,7 +103,10 @@ export default function AttendanceManagement({ data, dailyData, setDailyData, te
     <div className="attendance-management">
       <div className="header-section">
         <h2>주간 출결 현황</h2>
-        <div className="week-info">{weekId}</div>
+        <div className="week-info">
+          {weekId}
+          <span className="week-date-range">{weekDateRange}</span>
+        </div>
       </div>
 
       <div className="date-navigation">
