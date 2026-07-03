@@ -128,16 +128,13 @@
     gap: 8px;
 }
 
-.prayer-meta {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
 .created-at {
-    font-size: 0.75rem;
+    display: block;
+    font-size: 0.9rem;
     color: var(--text-tertiary);
     font-weight: 400;
+    margin-top: 8px;
+    text-align: right;
 }
 
 .grade-class {

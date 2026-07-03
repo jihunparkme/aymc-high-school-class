@@ -138,14 +138,12 @@ export default function WeeklyListView({
                     {item.gender === '남' ? '🙋🏼‍♂️' : '🙋🏻‍♀️'}
                   </span>
                 </div>
-                <div className="prayer-meta">
-                  {formatCreatedAt(item.createdAt) && (
-                    <span className="created-at">{formatCreatedAt(item.createdAt)}</span>
-                  )}
-                  <span className="attendance-emoji">{item.attendance ? '✅' : '❌'}</span>
-                </div>
+                <span className="attendance-emoji">{item.attendance ? '✅' : '❌'}</span>
               </div>
               <p className="prayer-text">{item.content}</p>
+              {formatCreatedAt(item.createdAt) && (
+                <span className="created-at">{formatCreatedAt(item.createdAt)}</span>
+              )}
             </div>
           ))}
         </div>
