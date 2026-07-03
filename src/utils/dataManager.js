@@ -201,7 +201,8 @@ const transformWeeklyData = (records, idField) => {
     result[idStr][record.week_id] = {
       attendance: record.attendance,
       notes: record.notes || '',
-      prayerRequests: prayerText
+      prayerRequests: prayerText,
+      createdAt: record.created_at || null
     }
   })
   return result

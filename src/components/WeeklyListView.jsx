@@ -2,6 +2,17 @@ import { useState } from 'react'
 import useWeekNavigation from '../hooks/useWeekNavigation'
 import '../styles/PrayerView.css'
 
+const formatCreatedAt = (isoString) => {
+  if (!isoString) return null
+  const d = new Date(isoString)
+  const yyyy = d.getFullYear()
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  const hh = String(d.getHours()).padStart(2, '0')
+  const min = String(d.getMinutes()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd} ${hh}:${min}`
+}
+
 /**
  * Shared component for PrayerView and NotesView.
  * Props:
@@ -38,7 +49,8 @@ export default function WeeklyListView({
             studentName: student.name,
             gender: student.gender,
             content,
-            attendance: weekData.attendance || false
+            attendance: weekData.attendance || false,
+            createdAt: weekData.createdAt || null
           })
         })
       })
@@ -59,7 +71,8 @@ export default function WeeklyListView({
           studentName: teacher.name,
           gender: teacher.gender,
           content,
-          attendance: weekData.attendance || false
+          attendance: weekData.attendance || false,
+          createdAt: weekData.createdAt || null
         })
       })
     })
@@ -125,7 +138,12 @@ export default function WeeklyListView({
                     {item.gender === '남' ? '🙋🏼‍♂️' : '🙋🏻‍♀️'}
                   </span>
                 </div>
-                <span className="attendance-emoji">{item.attendance ? '✅' : '❌'}</span>
+                <div className="prayer-meta">
+                  {formatCreatedAt(item.createdAt) && (
+                    <span className="created-at">{formatCreatedAt(item.createdAt)}</span>
+                  )}
+                  <span className="attendance-emoji">{item.attendance ? '✅' : '❌'}</span>
+                </div>
               </div>
               <p className="prayer-text">{item.content}</p>
             </div>
