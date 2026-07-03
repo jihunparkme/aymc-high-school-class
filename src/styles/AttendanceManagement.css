@@ -89,6 +89,37 @@
     background-color: var(--card-bg);
     border: 1px solid transparent;
     box-shadow: var(--shadow-sm);
+    position: relative;
+}
+
+.student-tag[data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(30, 30, 30, 0.92);
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 400;
+    white-space: nowrap;
+    padding: 4px 10px;
+    border-radius: 8px;
+    pointer-events: none;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.student-tag[data-tooltip]:hover::before {
+    content: '';
+    position: absolute;
+    bottom: calc(100% + 1px);
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: rgba(30, 30, 30, 0.92);
+    pointer-events: none;
+    z-index: 10;
 }
 
 .student-tag.present {

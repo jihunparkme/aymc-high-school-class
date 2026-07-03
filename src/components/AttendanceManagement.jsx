@@ -3,6 +3,16 @@ import useWeekNavigation from '../hooks/useWeekNavigation'
 import { updateAttendance, updateTeacherAttendance } from '../utils/dataManager'
 import '../styles/AttendanceManagement.css'
 
+const formatAttendanceTime = (isoString) => {
+  if (!isoString) return null
+  const d = new Date(isoString)
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  const hh = String(d.getHours()).padStart(2, '0')
+  const min = String(d.getMinutes()).padStart(2, '0')
+  return `${mm}/${dd} ${hh}:${min}`
+}
+
 export default function AttendanceManagement({ data, dailyData, setDailyData, teacherDailyData, setTeacherDailyData }) {
   const { weekId, weekDateRange, goToPrevWeek, goToNextWeek, goToThisWeek } = useWeekNavigation()
 
@@ -146,13 +156,16 @@ export default function AttendanceManagement({ data, dailyData, setDailyData, te
                 <h4>{classItem.className} ({classItem.teacherName})<br/>출석: {present}명 / 결석: {absent}명</h4>
                 <div className="student-attendance-list">
                   {classItem.students.map(student => {
-                    const isPresent = dailyData[student.studentId]?.[weekId]?.attendance
+                    const weekData = dailyData[student.studentId]?.[weekId]
+                    const isPresent = weekData?.attendance
+                    const checkedAt = formatAttendanceTime(weekData?.createdAt)
                     return (
                       <div 
                         key={student.studentId} 
                         className={`student-tag ${isPresent ? 'present' : 'absent'}`}
                         onClick={() => handleStudentClick(student.studentId, student.name, isPresent)}
                         style={{ cursor: 'pointer' }}
+                        data-tooltip={isPresent && checkedAt ? `${checkedAt}` : null}
                       >
                         {student.name}
                       </div>
@@ -180,13 +193,16 @@ export default function AttendanceManagement({ data, dailyData, setDailyData, te
                   <h4>전체 교사<br/>출석: {present}명 / 결석: {absent}명</h4>
                   <div className="student-attendance-list">
                     {teachers.map(teacher => {
-                      const isPresent = teacherDailyData?.[teacher.id]?.[weekId]?.attendance
+                      const weekData = teacherDailyData?.[teacher.id]?.[weekId]
+                      const isPresent = weekData?.attendance
+                      const checkedAt = formatAttendanceTime(weekData?.createdAt)
                       return (
                         <div 
                           key={teacher.id} 
                           className={`student-tag ${isPresent ? 'present' : 'absent'}`}
                           onClick={() => handleTeacherClick(teacher.id, teacher.name, isPresent)}
                           style={{ cursor: 'pointer' }}
+                          data-tooltip={isPresent && checkedAt ? `${checkedAt}` : null}
                         >
                           {teacher.name}
                         </div>
